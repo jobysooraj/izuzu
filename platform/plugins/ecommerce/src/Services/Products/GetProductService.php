@@ -1,5 +1,4 @@
 <?php
-
 namespace Botble\Ecommerce\Services\Products;
 
 use Botble\Base\Facades\BaseHelper;
@@ -22,8 +21,8 @@ class GetProductService
         array $with = [],
         array $withCount = [],
         array $conditions = []
-    ): Collection|LengthAwarePaginator {
-        $num = $request->integer('num') ?: $request->integer('per-page');
+    ): Collection | LengthAwarePaginator {
+        $num   = $request->integer('num') ?: $request->integer('per-page');
         $shows = EcommerceHelper::getShowParams();
 
         if (! array_key_exists($num, $shows)) {
@@ -31,18 +30,18 @@ class GetProductService
         }
 
         $queryVar = [
-            'keyword' => BaseHelper::stringify($request->input('q')),
-            'brands' => EcommerceHelper::parseFilterParams($request, 'brands'),
-            'categories' => EcommerceHelper::parseFilterParams($request, 'categories'),
-            'tags' => EcommerceHelper::parseFilterParams($request, 'tags'),
-            'collections' => EcommerceHelper::parseFilterParams($request, 'collections'),
-            'collection' => $request->input('collection'),
-            'attributes' => is_array($request->input('attributes')) ? $request->input('attributes') : [],
-            'max_price' => $request->input('max_price'),
-            'min_price' => $request->input('min_price'),
+            'keyword'      => BaseHelper::stringify($request->input('q')),
+            'brands'       => EcommerceHelper::parseFilterParams($request, 'brands'),
+            'categories'   => EcommerceHelper::parseFilterParams($request, 'categories'),
+            'tags'         => EcommerceHelper::parseFilterParams($request, 'tags'),
+            'collections'  => EcommerceHelper::parseFilterParams($request, 'collections'),
+            'collection'   => $request->input('collection'),
+            'attributes'   => is_array($request->input('attributes')) ? $request->input('attributes') : [],
+            'max_price'    => $request->input('max_price'),
+            'min_price'    => $request->input('min_price'),
             'price_ranges' => (array) $request->input('price_ranges', []),
-            'sort_by' => $request->input('sort-by'),
-            'num' => $num,
+            'sort_by'      => $request->input('sort-by'),
+            'num'          => $num,
         ];
 
         if ($category) {
@@ -54,7 +53,7 @@ class GetProductService
         }
 
         $orderBy = [
-            'ec_products.order' => 'ASC',
+            'ec_products.order'      => 'ASC',
             'ec_products.created_at' => 'DESC',
         ];
 
@@ -63,11 +62,11 @@ class GetProductService
         }
 
         $params = array_merge([
-            'paginate' => [
-                'per_page' => $queryVar['num'] ?: 12,
+            'paginate'  => [
+                'per_page'      => $queryVar['num'] ?: 12,
                 'current_paged' => $request->integer('page', 1) ?: 1,
             ],
-            'with' => array_merge(EcommerceHelper::withProductEagerLoadingRelations(), $with),
+            'with'      => array_merge(EcommerceHelper::withProductEagerLoadingRelations(), $with),
             'withCount' => $withCount,
         ], EcommerceHelper::withReviewsParams());
 
@@ -131,17 +130,17 @@ class GetProductService
         }
 
         return $this->productRepository->filterProducts([
-            'keyword' => $queryVar['keyword'],
-            'min_price' => $queryVar['min_price'],
-            'max_price' => $queryVar['max_price'],
+            'keyword'      => $queryVar['keyword'],
+            'min_price'    => $queryVar['min_price'],
+            'max_price'    => $queryVar['max_price'],
             'price_ranges' => array_values($queryVar['price_ranges']),
-            'categories' => $queryVar['categories'],
-            'tags' => $queryVar['tags'],
-            'collections' => $queryVar['collections'],
-            'collection' => $queryVar['collection'],
-            'brands' => $queryVar['brands'],
-            'attributes' => $queryVar['attributes'],
-            'order_by' => $orderBy,
+            'categories'   => $queryVar['categories'],
+            'tags'         => $queryVar['tags'],
+            'collections'  => $queryVar['collections'],
+            'collection'   => $queryVar['collection'],
+            'brands'       => $queryVar['brands'],
+            'attributes'   => $queryVar['attributes'],
+            'order_by'     => $orderBy,
         ], $params);
     }
 }
