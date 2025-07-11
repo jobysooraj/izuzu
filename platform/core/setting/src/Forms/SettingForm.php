@@ -15,6 +15,7 @@ abstract class SettingForm extends FormAbstract
             ->template('core/setting::forms.form')
             ->setActionButtons(view('core/setting::forms.partials.action', ['form' => $this->getFormOption('id')])->render())
             ->setMethod('PUT');
+
     }
 
     protected function setSectionTitle(string $title): static

@@ -231,5 +231,34 @@ class FigCategoryTracker {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    new FigCategoryTracker('.bb-product-form-filter', 'fig-input');
+    const tracker = new FigCategoryTracker('.bb-product-form-filter', 'fig-input');
+
+    // 🎯 Enhancement: sync fig ↔ pno/name
+    const pnoInput = document.querySelector('input[name="pno"]');
+    const nameInput = document.querySelector('input[name="name"]');
+
+    // ✅ Clear fig filters when pno or name is typed
+    function clearFigFilters() {
+        if (!tracker) return;
+        tracker.selected.clear();
+        tracker.updateHidden();
+        tracker.syncFromSelected();
+    }
+
+    if (pnoInput) {
+        pnoInput.addEventListener('input', clearFigFilters);
+    }
+
+    if (nameInput) {
+        nameInput.addEventListener('input', clearFigFilters);
+    }
+
+    // ✅ Clear pno & name when fig checkbox changes
+    const figCheckboxes = document.querySelectorAll('input[name="fig[]"]');
+    figCheckboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+            if (pnoInput) pnoInput.value = '';
+            if (nameInput) nameInput.value = '';
+        });
+    });
 });

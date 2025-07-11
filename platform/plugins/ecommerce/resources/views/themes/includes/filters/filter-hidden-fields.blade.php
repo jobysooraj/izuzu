@@ -54,7 +54,7 @@ $categories = EcommerceHelper::parseFilterParams(request(), 'categories');
     @endforeach
 
     {{-- Handle categories safely, always parsing --}}
-    @php
+    {{-- @php
     $categories = EcommerceHelper::parseFilterParams(request(), 'categories');
     @endphp
     @if (!empty($categories))
@@ -63,7 +63,7 @@ $categories = EcommerceHelper::parseFilterParams(request(), 'categories');
     <input type="hidden" name="categories[]" class="product-filter-item" value="{{ $category }}">
     @endif
     @endforeach
-    @endif
+    @endif --}}
 
     {{-- Handle search params --}}
     @foreach (['q', 'pno', 'fig', 'name','sygt_mei'] as $searchParam)

@@ -47,7 +47,7 @@
         ],
     ];
 @endphp
-@if ($categories->isNotEmpty())
+{{-- @if ($categories->isNotEmpty())
     <div class="widget-product-categories pt-5 pb-2">
         <div class="container-xxxl">
             <div class="row">
@@ -96,4 +96,4 @@
             </div>
         </div>
     </div>
-@endif
+@endif --}}

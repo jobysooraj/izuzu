@@ -45,6 +45,9 @@ Theme::layout('full-width');
                             <div>
                                 <button type="submit" class="btn btn-sm btn-primary">{{ __('Search') }}</button>
                             </div>
+                            <div>
+                                <a href="{{route('public.index')}}" class="btn btn-sm btn-primary">{{ __('Clear') }}</a>
+                            </div>
                         </form>
                         {{-- @include(Theme::getThemeNamespace('views.ecommerce.includes.sort'))
                         @include(Theme::getThemeNamespace('views.ecommerce.includes.layout')) --}}

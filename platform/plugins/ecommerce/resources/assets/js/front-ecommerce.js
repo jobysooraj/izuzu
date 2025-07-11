@@ -121,14 +121,14 @@ class Ecommerce {
 
                 form.trigger('submit')
             })
-            .on('keyup', '.bb-form-quick-search input', (e) => {
-                this.#ajaxSearchProducts($(e.currentTarget).closest('form'))
-            })
-            .on('click', 'body', (e) => {
-                if (!$(e.target).closest('.bb-form-quick-search').length) {
-                    $('.bb-quick-search-results').removeClass('show').html('')
-                }
-            })
+            // .on('keyup', '.bb-form-quick-search input', (e) => {
+            //     this.#ajaxSearchProducts($(e.currentTarget).closest('form'))
+            // })
+            // .on('click', 'body', (e) => {
+            //     if (!$(e.target).closest('.bb-form-quick-search').length) {
+            //         $('.bb-quick-search-results').removeClass('show').html('')
+            //     }
+            // })
             .on('click', '[data-bb-toggle="quick-shop"]', (e) => {
                 const currentTarget = $(e.currentTarget)
                 const modal = $('#quick-shop-modal')

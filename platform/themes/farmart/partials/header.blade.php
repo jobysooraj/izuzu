@@ -285,15 +285,15 @@
                         @if (is_plugin_active('ecommerce'))
                         <x-plugins-ecommerce::fronts.ajax-search class="form--quick-search">
                             <div class="form-group--icon" style="display: none">
-                                <div class="product-category-label">
+                                {{-- <div class="product-category-label">
                                     <label for="product-category-select" class="text">{{ __('All Categories') }}</label>
                                     <span class="svg-icon">
                                         <svg>
                                             <use href="#svg-icon-chevron-down" xlink:href="#svg-icon-chevron-down"></use>
                                         </svg>
                                     </span>
-                                </div>
-                                <x-plugins-ecommerce::fronts.ajax-search.categories-dropdown class="form-control product-category-select" id="product-category-select" />
+                                </div> --}}
+                                {{-- <x-plugins-ecommerce::fronts.ajax-search.categories-dropdown class="form-control product-category-select" id="product-category-select" /> --}}
                             </div>
                             <x-plugins-ecommerce::fronts.ajax-search.input type="text" class="form-control input-search-product" />
                             <button class="btn" type="submit" aria-label="Submit">
@@ -382,7 +382,7 @@
             <div class="header-wrapper">
                 <nav class="navigation">
                     <div class="container-xxxl">
-                        <div class="navigation__left">
+                        {{-- <div class="navigation__left">
                             @if (is_plugin_active('ecommerce') && theme_option('enabled_product_categories_on_header', 'yes') == 'yes')
                             <div class="menu--product-categories">
                                 <div class="menu__toggle">
@@ -398,7 +398,7 @@
                                 </div>
                             </div>
                             @endif
-                        </div>
+                        </div> --}}
                         <div @class(['navigation__center', 'ps-0'=> theme_option('enabled_product_categories_on_header', 'yes') != 'yes'])>
                             {!! Menu::renderMenuLocation('main-menu', [
                             'view' => 'menu',

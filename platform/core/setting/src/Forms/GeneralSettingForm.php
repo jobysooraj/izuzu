@@ -1,5 +1,4 @@
 <?php
-
 namespace Botble\Setting\Forms;
 
 use Botble\Base\Facades\Assets;
@@ -45,6 +44,10 @@ class GeneralSettingForm extends SettingForm
             ->add('enable_send_error_reporting_via_email', 'onOffCheckbox', [
                 'label' => trans('core/setting::setting.general.enable_send_error_reporting_via_email'),
                 'value' => setting('enable_send_error_reporting_via_email'),
+            ])
+            ->add('otp_login_enabled', 'onOffCheckbox', [
+                'label' => 'Enable OTP Login',
+                'value' => setting('otp_login_enabled', 0),
             ])
             ->when(
                 apply_filters(BASE_FILTER_AFTER_SETTING_CONTENT, null),

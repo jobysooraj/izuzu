@@ -35,4 +35,5 @@
     }
     @endphp --}}
     {!! $products->links(Theme::getThemeNamespace('partials.pagination-numeric')) !!}
+
 </div>

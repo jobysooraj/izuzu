@@ -624,11 +624,11 @@ MartApp.isRTL = $('body').prop('dir') === 'rtl';
   });
   function basicEvents() {
     $('.form--quick-search .form-group--icon').show();
-    var $categoryLabel = $('.product-category-label .text');
-    $(document).on('change', '.product-category-select', function () {
-      $categoryLabel.text($.trim($(this).find('option:selected').text()));
-    });
-    $categoryLabel.text($.trim($('.product-category-select option:selected').text()));
+    // var $categoryLabel = $('.product-category-label .text');
+    // $(document).on('change', '.product-category-select', function () {
+    //   $categoryLabel.text($.trim($(this).find('option:selected').text()));
+    // });
+    // $categoryLabel.text($.trim($('.product-category-select option:selected').text()));
     $(document).ready(function () {
       $('.preloader').addClass('fade-in');
     });
