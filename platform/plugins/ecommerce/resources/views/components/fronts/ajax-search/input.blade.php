@@ -1,7 +1,7 @@
 <input {{ $attributes->merge([
     'type' => 'search',
     'name' => 'q',
-    'placeholder' => __('Search for Products...'),
+    'placeholder' => __('Search VIN...'),
     'value' => BaseHelper::stringify(request()->query('q')),
     'autocomplete' => 'off',
 ]) }}>

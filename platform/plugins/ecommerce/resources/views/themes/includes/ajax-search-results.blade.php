@@ -1,40 +1,42 @@
-@if ($products->isNotEmpty())
-    <div class="bb-quick-search-content">
-        <div class="bb-quick-search-list">
-            @foreach ($products as $product)
-                <a class="bb-quick-search-item" href="{{ $product->url }}">
-                    <div class="bb-quick-search-item-image">
-                        {{ RvMedia::image($product->image, $product->name, 'thumb', useDefaultImage: true, attributes: ['loading' => false]) }}
-                    </div>
-                    <div class="bb-quick-search-item-info">
-                        <div class="bb-quick-search-item-name">
-                            {{ $product->name }}
-                        </div>
+@if ($products->count())
+<div class="bb-quick-search-content">
+    <div class="bb-quick-search-list">
+        @foreach ($products as $product)
+        @php
+        $vin = request('q') ?? '';
+        $generatedLink = route('public.products.detail', [
+        'slug' => \Str::slug($product->name),
+        'pno' => $product->pno,
+        'q' => $vin,
+        ]);
+        @endphp
 
-                        @if (EcommerceHelper::isReviewEnabled())
-                            <div class="bb-quick-search-item-rating">
-                                @include(EcommerceHelper::viewPath('includes.rating-star'), ['avg' => $product->reviews_avg])
-                                <span>({{ $product->reviews_count }})</span>
-                            </div>
-                        @endif
-
-                        @include(EcommerceHelper::viewPath('includes.product-price'), [
-                            'priceWrapperClassName' => 'bb-quick-search-item-price',
-                            'priceClassName' => 'new-price',
-                            'priceOriginalWrapperClassName' => '',
-                            'priceOriginalClassName' => 'old-price',
-                        ])
-                    </div>
-                </a>
-            @endforeach
-        </div>
+        <a class="bb-quick-search-item" href="{{ $generatedLink }}">
+            <div class="bb-quick-search-item-image">
+                <img src="{{ $product->fname }}" alt="{{ $product->name }}" loading="lazy" width="60" height="60" onerror="this.src='/images/placeholder.png'">
+            </div>
+            <div class="bb-quick-search-item-info">
+                <div class="bb-quick-search-item-name">{{ $product->name }}</div>
+                <div class="bb-quick-search-item-name">Fig: {{ $product->fig }}</div>
+                <div class="bb-quick-search-item-name">Pno: {{ $product->pno }}</div>
+            </div>
+        </a>
+        @endforeach
     </div>
+</div>
 
-    <div class="bb-quick-search-view-all">
-        <a href="#" onclick="event.preventDefault(); this.closest('.bb-form-quick-search').submit();">{{ __('View all results') }}</a>
-    </div>
+<div class="bb-quick-search-view-all">
+    {{-- <a href="{{ route('public.products') }}"
+    onclick="event.preventDefault(); this.closest('.bb-form-quick-search').submit();">
+    {{ __('View all results') }}
+    </a> --}}
+    <a href="{{ route('public.products.filter.ajax') }}?q={{ request('q') }}" onclick="event.preventDefault(); document.querySelector('.bb-form-quick-search').submit();">
+        {{ __('View all results') }}
+    </a>
+
+</div>
 @else
-    <div class="bb-quick-search-empty">
-        {{ __('No results found!') }}
-    </div>
+<div class="bb-quick-search-empty">
+    {{ __('No results found!') }}
+</div>
 @endif

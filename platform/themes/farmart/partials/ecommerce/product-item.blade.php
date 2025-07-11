@@ -1,98 +1,63 @@
+@php
+$useNamedRoute = $useNamedRoute ?? true;
+// $vin=request('q')?? '';
+// $generatedLink =url('/products/' . \Str::slug($product->name) . '-' . $product->pno . '?q=' . $vin);
+// if (!empty($product->pno)){
+
+// $generatedLink =route('public.products.detail', ['slug' => \Str::slug($product->name), 'pno' => $product->pno, 'q' => $vin]);
+// }
+
+@endphp
 <div class="product-thumbnail">
-    <a
-        class="product-loop__link img-fluid-eq"
-        href="{{ $product->url }}"
-        tabindex="0"
-    >
+    {{-- {{ url('/products/' . \Str::slug($product->name)) }} --}}
+
+    @if (!empty($product->pno))
+    <a class="product-loop__link img-fluid-eq" href="#" tabindex="0">
         <div class="img-fluid-eq__dummy"></div>
         <div class="img-fluid-eq__wrap">
-            <img
-                class="lazyload product-thumbnail__img"
-                data-src="{{ RvMedia::getImageUrl($product->image, 'small', false, RvMedia::getDefaultImage()) }}"
-                src="{{ image_placeholder($product->image, 'small') }}"
-                alt="{{ $product->name }}"
-            >
+            {{-- <img class="lazyload product-thumbnail__img" data-src="{{ RvMedia::getImageUrl($product['fname'], 'small', false, RvMedia::getDefaultImage()) }}" src="{{ image_placeholder($product['fname'], 'small') }}" alt="{{ $product['name'] }}"> --}}
+            <img class="lazyload product-thumbnail__img" data-src="{{ isset($product->fname) ? RvMedia::getImageUrl($product->fname, 'small', false, RvMedia::getDefaultImage()) : '/images/placeholder.png' }}" src="{{ isset($product->fname) ? image_placeholder($product->fname, 'small') : '/images/placeholder.png' }}" alt="{{ $product->name ?? 'Unnamed' }}">
+
         </div>
-        <span class="ribbons">
-            @if ($product->isOutOfStock())
-                <span class="ribbon out-stock">{{ __('Out Of Stock') }}</span>
-            @else
-                @if ($product->productLabels->isNotEmpty())
-                    @foreach ($product->productLabels as $label)
-                        <span
-                            class="ribbon"
-                            {!! $label->css_styles !!}
-                        >{{ $label->name }}</span>
-                    @endforeach
-                @else
-                    @if ($product->front_sale_price !== $product->price)
-                        <div
-                            class="featured ribbon"
-                            dir="ltr"
-                        >{{ get_sale_percentage($product->price, $product->front_sale_price) }}</div>
-                    @endif
-                @endif
-            @endif
-        </span>
+
     </a>
-    {!! Theme::partial(
-        'ecommerce.product-loop-buttons',
-        compact('product') + (!empty($wishlistIds) ? compact('wishlistIds') : []),
-    ) !!}
+    @endif
+
 </div>
 <div class="product-details position-relative">
     <div class="product-content-box">
-        @if (is_plugin_active('marketplace') && $product->store->id)
-            <div class="sold-by-meta">
-                <a
-                    href="{{ $product->store->url }}"
-                    tabindex="0"
-                >{{ $product->store->name }}</a>
-            </div>
-        @endif
+
         <h3 class="product__title">
-            <a
-                href="{{ $product->url }}"
-                tabindex="0"
-            >{{ $product->name }}</a>
+            <a href="#" tabindex="0">{{ $product->name }}</a>
         </h3>
-        @if (EcommerceHelper::isReviewEnabled())
-            {!! Theme::partial('star-rating', ['avg' => $product->reviews_avg, 'count' => $product->reviews_count]) !!}
-        @endif
-        {!! Theme::partial('ecommerce.product-price', compact('product')) !!}
-        @if (!empty($isFlashSale))
-            <div class="deal-sold row mt-2">
-                @if (Botble\Ecommerce\Facades\FlashSale::isShowSaleCountLeft())
-                    <div class="deal-text col-auto">
-                        <span class="sold fw-bold">
-                            @if ($product->pivot->quantity > $product->pivot->sold)
-                                <span class="text">{{ __('Sold') }}: </span>
-                                <span class="value">{{ (int) $product->pivot->sold }} /
-                                    {{ (int) $product->pivot->quantity }}</span>
-                            @else
-                                <span class="text text-danger">{{ __('Sold out') }}</span>
-                            @endif
-                        </span>
-                    </div>
-                @endif
-                <div class="deal-progress col">
-                    <div class="progress">
-                        <div
-                            class="progress-bar"
-                            role="progressbar"
-                            aria-label="{{ __('Sold out') }}"
-                            aria-valuenow="{{ $product->pivot->quantity > 0 ? ($product->pivot->sold / $product->pivot->quantity) * 100 : 0 }}"
-                            aria-valuemin="0"
-                            aria-valuemax="100"
-                            style="width: {{ $product->pivot->quantity > 0 ? ($product->pivot->sold / $product->pivot->quantity) * 100 : 0 }}%"
-                        >
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endisset
-</div>
-<div class="product-bottom-box">
-    {!! Theme::partial('ecommerce.product-cart-form', compact('product')) !!}
-</div>
+        <ul class="list-unstyled text-muted small mb-3">
+            @if (!empty($product->pno))
+            <li><strong>{{ __('Part No:') }}</strong> {{ $product->pno }}</li>
+            @endif
+
+            @if (!empty($product->fig))
+            <li><strong>{{ __('Fig:') }}</strong> {{ $product->fig }}</li>
+            @endif
+
+            @if (!empty($product->qty))
+            <li><strong>{{ __('Qty:') }}</strong> {{ $product->qty }}</li>
+            @endif
+
+            @if (!empty($product->sygt_mei))
+            <li><strong>{{ __('SYGT MEI:') }}</strong> {{ $product->sygt_mei }}</li>
+            @endif
+
+            @if (!empty($product->key))
+            <li><strong>{{ __('Key:') }}</strong> {{ $product->key }}</li>
+            @endif
+
+            @if (!empty($product->p_year))
+            <li><strong>{{ __('Production Year:') }}</strong> {{ $product->p_year }}</li>
+            @endif
+        </ul>
+
+    </div>
+    <div class="product-bottom-box">
+        {{-- {!! Theme::partial('ecommerce.product-cart-form', compact('product')) !!} --}}
+    </div>
 </div>

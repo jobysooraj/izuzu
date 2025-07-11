@@ -7,6 +7,7 @@ class Ecommerce {
 
     constructor() {
         $(document)
+
             .on('click', '[data-bb-toggle="toggle-product-categories-tree"]', (e) => {
                 e.preventDefault()
 
@@ -110,7 +111,7 @@ class Ecommerce {
                     }
 
                     // Collect values from checked checkboxes
-                    const values = checkboxes.map(function() {
+                    const values = checkboxes.map(function () {
                         return $(this).val()
                     }).get()
 
@@ -1121,33 +1122,40 @@ class Ecommerce {
                 )
             },
             success: (data) => {
-                const { message, error } = data
+                const { message, error } = data;
 
                 if (error) {
                     Theme.showError(message)
                     this.filterAjax = null
                     return
                 }
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url
+                    return
+                }
 
+                if (data.data) {
+                    $('.bb-product-grid-wrapper').html(data.data)
+                }
                 // Ensure the URL doesn't have duplicate parameters
-                let finalUrl = nextUrl || url
+                let finalUrl = nextUrl || url;
                 if (finalUrl.includes('?')) {
-                    const urlParts = finalUrl.split('?')
-                    const baseUrl = urlParts[0]
-                    const params = new URLSearchParams(urlParts[1])
+                    const urlParts = finalUrl.split('?');
+                    const baseUrl = urlParts[0];
+                    const params = new URLSearchParams(urlParts[1]);
 
-                    // Remove any duplicate parameters
-                    const uniqueParams = new URLSearchParams()
+                    // Remove duplicate parameters
+                    const uniqueParams = new URLSearchParams();
                     for (const [key, value] of params.entries()) {
                         if (!uniqueParams.has(key)) {
-                            uniqueParams.set(key, value)
+                            uniqueParams.set(key, value);
                         }
                     }
 
-                    finalUrl = baseUrl + '?' + uniqueParams.toString()
+                    finalUrl = baseUrl + '?' + uniqueParams.toString();
                 }
 
-                window.history.pushState(data, null, finalUrl)
+
 
                 document.dispatchEvent(
                     new CustomEvent('ecommerce.product-filter.success', {
@@ -1242,7 +1250,7 @@ class Ecommerce {
 
             makeRequest(
                 url,
-                () => {},
+                () => { },
                 (data) => {
                     initCategoriesDropdown.each((index, element) => {
                         const currentTarget = $(element)
@@ -1303,7 +1311,7 @@ class Ecommerce {
     }
 
     onChangeProductAttribute = () => {
-        if (! window.onBeforeChangeSwatches || typeof window.onBeforeChangeSwatches !== 'function') {
+        if (!window.onBeforeChangeSwatches || typeof window.onBeforeChangeSwatches !== 'function') {
             /**
              * @param {Array<Number>} data
              * @param {jQuery} element
@@ -1318,7 +1326,7 @@ class Ecommerce {
             }
         }
 
-        if (! window.onChangeSwatchesSuccess || typeof window.onChangeSwatchesSuccess !== 'function') {
+        if (!window.onChangeSwatchesSuccess || typeof window.onChangeSwatchesSuccess !== 'function') {
             /**
              * @param {{data: Object, error: Boolean, message: String}} response
              * @param {jQuery} element
@@ -1408,7 +1416,7 @@ class Ecommerce {
                 if (!data.image_with_sizes.origin.length) {
                     data.image_with_sizes.origin.push(siteConfig.img_placeholder)
                 } else {
-                    data.image_with_sizes.origin.forEach(function(item) {
+                    data.image_with_sizes.origin.forEach(function (item) {
                         imageHtml += `
                     <a href='${item}'>
                         <img src='${item}' alt='${data.name}'>
@@ -1420,7 +1428,7 @@ class Ecommerce {
                 if (!data.image_with_sizes.thumb.length) {
                     data.image_with_sizes.thumb.push(siteConfig.img_placeholder)
                 } else {
-                    data.image_with_sizes.thumb.forEach(function(item) {
+                    data.image_with_sizes.thumb.forEach(function (item) {
                         thumbHtml += `
                     <div>
                         <img src='${item}' alt='${data.name}'>
@@ -1500,6 +1508,7 @@ class Ecommerce {
 
 $(() => {
     window.EcommerceApp = new Ecommerce()
+    new FigCategoryTracker('.bb-product-form-filter')
 
     EcommerceApp.productQuantityToggle()
 
@@ -1543,13 +1552,13 @@ $(() => {
 
             let $sidebar = $('[data-bb-filter-sidebar]')
 
-            if (! $sidebar.length) {
+            if (!$sidebar.length) {
                 $sidebar = $defaultSidebar
             }
 
             // Store the current active filter link before replacing the sidebar
             const activeFilterLinks = {};
-            $('.bb-product-filter-link.active').each(function() {
+            $('.bb-product-filter-link.active').each(function () {
                 const filterGroup = $(this).closest('.bb-product-filter').data('filter-group');
                 if (filterGroup) {
                     activeFilterLinks[filterGroup] = $(this).data('id');

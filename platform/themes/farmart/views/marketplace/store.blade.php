@@ -6,7 +6,7 @@
     $categories = ProductCategoryHelper::getProductCategoriesWithUrl();
     $categoriesRequest = (array) request()->input('categories', []);
     $categoryId = Arr::get($categoriesRequest, 0);
-
+dd($categoryId);
     Theme::asset()->container('footer')->add('store-search-fix-js', 'themes/farmart/assets/js/store-search-fix.js', ['jquery']);
 @endphp
 
@@ -40,7 +40,8 @@
                     </div>
 
                     <div class="catalog-filter-sidebar-content px-3 px-md-0">
-                        <form action="{{ $store->url }}" method="GET" class="bb-product-form-filter">
+                        {{-- class="bb-product-form-filter" --}}
+                        <form action="{{ $store->url }}" method="GET" >
                             @include(EcommerceHelper::viewPath('includes.filters.filter-hidden-fields'))
                             <input name="categories[]" type="hidden" value="{{ $categoryId }}">
 

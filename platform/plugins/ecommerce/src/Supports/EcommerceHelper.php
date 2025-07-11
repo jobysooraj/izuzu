@@ -1,5 +1,4 @@
 <?php
-
 namespace Botble\Ecommerce\Supports;
 
 use Botble\Base\Enums\BaseStatusEnum;
@@ -75,9 +74,9 @@ class EcommerceHelper
         return (bool) get_ecommerce_setting('compare_enabled', 1);
     }
 
-    public function isProductInCompare(int|string $productId): bool
+    public function isProductInCompare(int | string $productId): bool
     {
-        return Cart::instance('compare')->search(fn ($cartItem) => $cartItem->id == $productId)->isNotEmpty();
+        return Cart::instance('compare')->search(fn($cartItem) => $cartItem->id == $productId)->isNotEmpty();
     }
 
     public function isReviewEnabled(): bool
@@ -121,7 +120,7 @@ class EcommerceHelper
         return $number;
     }
 
-    public function getReviewsGroupedByProductId(int|string $productId, int $reviewsCount = 0): Collection
+    public function getReviewsGroupedByProductId(int | string $productId, int $reviewsCount = 0): Collection
     {
         if ($reviewsCount) {
             $reviews = Review::query()
@@ -137,7 +136,7 @@ class EcommerceHelper
         $results = collect();
         for ($i = 5; $i >= 1; $i--) {
             if ($reviewsCount) {
-                $review = $reviews->firstWhere('star', $i);
+                $review    = $reviews->firstWhere('star', $i);
                 $starCount = $review ? $review->star_count : 0;
                 if ($starCount > 0) {
                     $starCount = $starCount / $reviewsCount * 100;
@@ -147,8 +146,8 @@ class EcommerceHelper
             }
 
             $results[] = [
-                'star' => $i,
-                'count' => $starCount,
+                'star'    => $i,
+                'count'   => $starCount,
                 'percent' => ((int) ($starCount * 100)) / 100,
             ];
         }
@@ -203,7 +202,7 @@ class EcommerceHelper
                 ->oldest('name')
                 ->select('name', 'code')
                 ->get()
-                ->mapWithKeys(fn (Country $item) => [$item->code => $item->name]) // @phpstan-ignore-line
+                ->mapWithKeys(fn(Country $item) => [$item->code => $item->name]) // @phpstan-ignore-line
                 ->all();
 
             if (! empty($selectedCountries)) {
@@ -237,7 +236,7 @@ class EcommerceHelper
         return $this->availableCountries;
     }
 
-    public function getDefaultCountryId(): int|string|null
+    public function getDefaultCountryId(): int | string | null
     {
         if ($this->loadCountriesStatesCitiesFromPluginLocation()) {
             $countryId = Country::query()->wherePublished()->where('is_default', 1)->value('code');
@@ -252,7 +251,7 @@ class EcommerceHelper
         return get_ecommerce_setting('default_country_at_checkout_page') ?: $this->getFirstCountryId();
     }
 
-    public function getAvailableStatesByCountry(int|string|null $countryId): array
+    public function getAvailableStatesByCountry(int | string | null $countryId): array
     {
         if (! $countryId) {
             $countryId = $this->getFirstCountryId();
@@ -275,11 +274,11 @@ class EcommerceHelper
             ->oldest('name')
             ->select('name', 'id')
             ->get()
-            ->mapWithKeys(fn (State $item) => [$item->getKey() => $item->name]) // @phpstan-ignore-line
+            ->mapWithKeys(fn(State $item) => [$item->getKey() => $item->name]) // @phpstan-ignore-line
             ->all();
     }
 
-    public function getAvailableCitiesByState(int|string|null $stateId, int|string|null $countryId = null): array
+    public function getAvailableCitiesByState(int | string | null $stateId, int | string | null $countryId = null): array
     {
         if (! $this->loadCountriesStatesCitiesFromPluginLocation() || (! $stateId && ! $countryId)) {
             return [];
@@ -289,7 +288,7 @@ class EcommerceHelper
             ->wherePublished()
             ->when(
                 $stateId,
-                fn ($query) => $query->where('state_id', $stateId),
+                fn($query) => $query->where('state_id', $stateId),
                 function ($query) use ($countryId): void {
                     $query->when($countryId, function ($query) use ($countryId) {
                         return $query->whereHas('state.country', function ($query) use ($countryId) {
@@ -304,7 +303,7 @@ class EcommerceHelper
             ->oldest('name')
             ->select('name', 'id')
             ->get()
-            ->mapWithKeys(fn (City $item) => [$item->getKey() => $item->name]) // @phpstan-ignore-line
+            ->mapWithKeys(fn(City $item) => [$item->getKey() => $item->name]) // @phpstan-ignore-line
             ->all();
     }
 
@@ -312,25 +311,25 @@ class EcommerceHelper
     {
         $sort = [
             'default_sorting' => __('Default'),
-            'date_asc' => __('Oldest'),
-            'date_desc' => __('Newest'),
+            'date_asc'        => __('Oldest'),
+            'date_desc'       => __('Newest'),
         ];
 
         if (! EcommerceHelper::hideProductPrice() || EcommerceHelper::isCartEnabled()) {
             $sort += [
-                'price_asc' => __('Price: low to high'),
+                'price_asc'  => __('Price: low to high'),
                 'price_desc' => __('Price: high to low'),
             ];
         }
 
         $sort += [
-            'name_asc' => __('Name: A-Z'),
+            'name_asc'  => __('Name: A-Z'),
             'name_desc' => __('Name: Z-A'),
         ];
 
         if ($this->isReviewEnabled()) {
             $sort += [
-                'rating_asc' => __('Rating: low to high'),
+                'rating_asc'  => __('Rating: low to high'),
                 'rating_desc' => __('Rating: high to low'),
             ];
         }
@@ -384,7 +383,7 @@ class EcommerceHelper
     public function getDateRangeInReport(Request $request): array
     {
         $startDate = Carbon::now()->subDays(29);
-        $endDate = Carbon::now();
+        $endDate   = Carbon::now();
 
         if ($request->input('date_from')) {
             try {
@@ -545,13 +544,13 @@ class EcommerceHelper
         if (! $this->isReviewEnabled()) {
             return [
                 'withCount' => [],
-                'withAvg' => [null, null],
+                'withAvg'   => [null, null],
             ];
         }
 
         return [
             'withCount' => ['reviews'],
-            'withAvg' => ['reviews as reviews_avg', 'star'],
+            'withAvg'   => ['reviews as reviews_avg', 'star'],
         ];
     }
 
@@ -576,7 +575,7 @@ class EcommerceHelper
         return $this->loadLocationDataFromPluginLocation;
     }
 
-    public function getCountryNameById(int|string|null $countryId): ?string
+    public function getCountryNameById(int | string | null $countryId): ?string
     {
         if (! $countryId) {
             return null;
@@ -611,11 +610,11 @@ class EcommerceHelper
             ->oldest('name')
             ->select('name', 'id')
             ->get()
-            ->mapWithKeys(fn (State $item) => [$item->getKey() => $item->name]) // @phpstan-ignore-line
+            ->mapWithKeys(fn(State $item) => [$item->getKey() => $item->name]) // @phpstan-ignore-line
             ->all();
     }
 
-    public function getCities(int|string|null $stateId): array
+    public function getCities(int | string | null $stateId): array
     {
         if (! $stateId || ! $this->loadCountriesStatesCitiesFromPluginLocation()) {
             return [];
@@ -628,7 +627,7 @@ class EcommerceHelper
             ->oldest('name')
             ->select('name', 'id')
             ->get()
-            ->mapWithKeys(fn (City $item) => [$item->getKey() => $item->name]) // @phpstan-ignore-line
+            ->mapWithKeys(fn(City $item) => [$item->getKey() => $item->name]) // @phpstan-ignore-line
             ->all();
     }
 
@@ -637,7 +636,7 @@ class EcommerceHelper
         return count($this->getAvailableCountries()) > 2;
     }
 
-    public function getFirstCountryId(): int|string|null
+    public function getFirstCountryId(): int | string | null
     {
         return Arr::first(array_filter(array_keys($this->getAvailableCountries())));
     }
@@ -645,12 +644,12 @@ class EcommerceHelper
     public function getCustomerAddressValidationRules(?string $prefix = ''): array
     {
         $rules = [
-            $prefix . 'name' => ['required', 'min:3', 'max:120'],
-            $prefix . 'email' => ['email', 'nullable', 'max:60', 'min:6'],
-            $prefix . 'state' => ['required', 'max:120'],
-            $prefix . 'city' => ['required', 'max:120'],
+            $prefix . 'name'    => ['required', 'min:3', 'max:120'],
+            $prefix . 'email'   => ['email', 'nullable', 'max:60', 'min:6'],
+            $prefix . 'state'   => ['required', 'max:120'],
+            $prefix . 'city'    => ['required', 'max:120'],
             $prefix . 'address' => ['required', 'max:120'],
-            $prefix . 'phone' => $this->getPhoneValidationRule(),
+            $prefix . 'phone'   => $this->getPhoneValidationRule(),
         ];
 
         if ($this->isUsingInMultipleCountries()) {
@@ -681,8 +680,8 @@ class EcommerceHelper
         }
 
         $availableMandatoryFields = $this->getEnabledMandatoryFieldsAtCheckout();
-        $mandatoryFields = array_keys($this->getMandatoryFieldsAtCheckout());
-        $nullableFields = array_diff($mandatoryFields, $availableMandatoryFields);
+        $mandatoryFields          = array_keys($this->getMandatoryFieldsAtCheckout());
+        $nullableFields           = array_diff($mandatoryFields, $availableMandatoryFields);
 
         if ($nullableFields) {
             foreach ($nullableFields as $key) {
@@ -701,7 +700,7 @@ class EcommerceHelper
                 if (is_array($rules[$key])) {
                     $rules[$key] = array_merge(
                         ['nullable'],
-                        array_filter($rules[$key], fn ($item) => $item !== 'required')
+                        array_filter($rules[$key], fn($item) => $item !== 'required')
                     );
                 }
             }
@@ -756,9 +755,9 @@ class EcommerceHelper
             /**
              * @var Customer $customer
              */
-            $customer = auth('customer')->user();
+            $customer       = auth('customer')->user();
             $viewedProducts = $customer->viewedProducts;
-            $exists = $viewedProducts->firstWhere('id', $product->id);
+            $exists         = $viewedProducts->firstWhere('id', $product->id);
 
             $removedIds = [];
 
@@ -795,13 +794,13 @@ class EcommerceHelper
 
     public function getProductVariationInfo(Product $product, array $params = []): array
     {
-        $productImages = $product->images;
+        $productImages    = $product->images;
         $productVariation = $product;
-        $selectedAttrs = [];
+        $selectedAttrs    = [];
 
         if ($product->variations->count()) {
             if ($product->is_variation) {
-                $product = $product->original_product;
+                $product       = $product->original_product;
                 $selectedAttrs = ProductVariation::getAttributeIdsOfChildrenProduct($product->getKey());
                 if (count($productImages) == 0) {
                     $productImages = $product->images;
@@ -844,7 +843,7 @@ class EcommerceHelper
                         'ec_product_variations.id' => $variationDefault->id,
                         'original_products.status' => BaseStatusEnum::PUBLISHED,
                     ],
-                    'select' => [
+                    'select'    => [
                         'ec_products.id',
                         'ec_products.name',
                         'ec_products.quantity',
@@ -862,7 +861,7 @@ class EcommerceHelper
                         'ec_products.description',
                         'ec_products.is_variation',
                     ],
-                    'take' => 1,
+                    'take'      => 1,
                 ]);
 
                 if ($productVariation && ! empty($params)) {
@@ -889,7 +888,7 @@ class EcommerceHelper
         return json_decode($setting, true);
     }
 
-    public function validateOrderWeight(int|float $weight): float|int
+    public function validateOrderWeight(int | float $weight): float | int
     {
         return max($weight, config('plugins.ecommerce.order.default_order_weight'));
     }
@@ -986,19 +985,19 @@ class EcommerceHelper
     public function productFilterParamsValidated(Request $request): bool
     {
         $validator = Validator::make($request->input(), [
-            'q' => ['nullable', 'string', 'max:255'],
-            'max_price' => ['nullable', 'numeric'],
-            'min_price' => ['nullable', 'numeric'],
-            'price_ranges' => ['sometimes', 'array'],
+            'q'                   => ['nullable', 'string', 'max:255'],
+            'max_price'           => ['nullable', 'numeric'],
+            'min_price'           => ['nullable', 'numeric'],
+            'price_ranges'        => ['sometimes', 'array'],
             'price_ranges.*.from' => ['required', 'numeric'],
-            'price_ranges.*.to' => ['required', 'numeric'],
-            'attributes' => ['nullable', 'array', 'sometimes'],
-            'categories' => ['nullable', 'array', 'sometimes'],
-            'tags' => ['nullable', 'array', 'sometimes'],
-            'brands' => ['nullable', 'array', 'sometimes'],
-            'sort-by' => ['nullable', 'string', 'max:40'],
-            'page' => ['nullable', 'numeric', 'min:1'],
-            'per_page' => ['nullable', 'numeric', 'min:1'],
+            'price_ranges.*.to'   => ['required', 'numeric'],
+            'attributes'          => ['nullable', 'array', 'sometimes'],
+            'categories'          => ['nullable', 'array', 'sometimes'],
+            'tags'                => ['nullable', 'array', 'sometimes'],
+            'brands'              => ['nullable', 'array', 'sometimes'],
+            'sort-by'             => ['nullable', 'string', 'max:40'],
+            'page'                => ['nullable', 'numeric', 'min:1'],
+            'per_page'            => ['nullable', 'numeric', 'min:1'],
         ]);
 
         // Also validate comma-separated string format
@@ -1008,19 +1007,19 @@ class EcommerceHelper
 
         // Try validating with comma-separated strings
         $validator = Validator::make($request->input(), [
-            'q' => ['nullable', 'string', 'max:255'],
-            'max_price' => ['nullable', 'numeric'],
-            'min_price' => ['nullable', 'numeric'],
-            'price_ranges' => ['sometimes', 'array'],
+            'q'                   => ['nullable', 'string', 'max:255'],
+            'max_price'           => ['nullable', 'numeric'],
+            'min_price'           => ['nullable', 'numeric'],
+            'price_ranges'        => ['sometimes', 'array'],
             'price_ranges.*.from' => ['required', 'numeric'],
-            'price_ranges.*.to' => ['required', 'numeric'],
-            'attributes' => ['nullable', 'string', 'sometimes'],
-            'categories' => ['nullable', 'string', 'sometimes'],
-            'tags' => ['nullable', 'string', 'sometimes'],
-            'brands' => ['nullable', 'string', 'sometimes'],
-            'sort-by' => ['nullable', 'string', 'max:40'],
-            'page' => ['nullable', 'numeric', 'min:1'],
-            'per_page' => ['nullable', 'numeric', 'min:1'],
+            'price_ranges.*.to'   => ['required', 'numeric'],
+            'attributes'          => ['nullable', 'string', 'sometimes'],
+            'categories'          => ['nullable', 'string', 'sometimes'],
+            'tags'                => ['nullable', 'string', 'sometimes'],
+            'brands'              => ['nullable', 'string', 'sometimes'],
+            'sort-by'             => ['nullable', 'string', 'max:40'],
+            'page'                => ['nullable', 'numeric', 'min:1'],
+            'per_page'            => ['nullable', 'numeric', 'min:1'],
         ]);
 
         return ! $validator->fails();
@@ -1040,41 +1039,41 @@ class EcommerceHelper
     public function getOriginAddress(): array
     {
         return [
-            'name' => get_ecommerce_setting('store_name'),
-            'company' => get_ecommerce_setting('store_company'),
-            'email' => get_ecommerce_setting('store_email'),
-            'phone' => get_ecommerce_setting('store_phone'),
-            'country' => get_ecommerce_setting('store_country'),
-            'state' => get_ecommerce_setting('store_state'),
-            'city' => get_ecommerce_setting('store_city'),
-            'address' => get_ecommerce_setting('store_address'),
+            'name'      => get_ecommerce_setting('store_name'),
+            'company'   => get_ecommerce_setting('store_company'),
+            'email'     => get_ecommerce_setting('store_email'),
+            'phone'     => get_ecommerce_setting('store_phone'),
+            'country'   => get_ecommerce_setting('store_country'),
+            'state'     => get_ecommerce_setting('store_state'),
+            'city'      => get_ecommerce_setting('store_city'),
+            'address'   => get_ecommerce_setting('store_address'),
             'address_2' => '',
-            'zip_code' => get_ecommerce_setting('store_zip_code'),
+            'zip_code'  => get_ecommerce_setting('store_zip_code'),
         ];
     }
 
     public function getShippingData(
-        array|Collection $products,
+        array | Collection $products,
         array $session,
         array $origin,
         float $orderTotal,
         ?string $paymentMethod = null
     ): array {
         $weight = 0;
-        $items = [];
+        $items  = [];
         foreach ($products as $product) {
             if (! $product->isTypeDigital()) {
                 $cartItem = $product->cartItem;
                 $weight += $product->weight * $cartItem->qty;
                 $items[$cartItem->id] = [
-                    'weight' => $product->weight,
-                    'length' => $product->length,
-                    'wide' => $product->wide,
-                    'height' => $product->height,
-                    'name' => $product->name,
+                    'weight'      => $product->weight,
+                    'length'      => $product->length,
+                    'wide'        => $product->wide,
+                    'height'      => $product->height,
+                    'name'        => $product->name,
                     'description' => $product->description,
-                    'qty' => $cartItem->qty,
-                    'price' => $cartItem->price,
+                    'qty'         => $cartItem->qty,
+                    'price'       => $cartItem->price,
                 ];
             }
         }
@@ -1088,16 +1087,16 @@ class EcommerceHelper
         }
 
         $data = [
-            'address' => Arr::get($session, 'address'),
-            'country' => $country,
-            'state' => Arr::get($session, 'state'),
-            'city' => Arr::get($session, 'city'),
-            'weight' => $this->validateOrderWeight($weight),
-            'order_total' => max($orderTotal, 0),
-            'address_to' => Arr::only($session, $keys),
-            'origin' => $origin,
-            'items' => $items,
-            'extra' => [
+            'address'        => Arr::get($session, 'address'),
+            'country'        => $country,
+            'state'          => Arr::get($session, 'state'),
+            'city'           => Arr::get($session, 'city'),
+            'weight'         => $this->validateOrderWeight($weight),
+            'order_total'    => max($orderTotal, 0),
+            'address_to'     => Arr::only($session, $keys),
+            'origin'         => $origin,
+            'items'          => $items,
+            'extra'          => [
                 'order_token' => session('tracked_start_checkout'),
             ],
             'payment_method' => $paymentMethod,
@@ -1105,7 +1104,7 @@ class EcommerceHelper
 
         if (is_plugin_active('payment') && $paymentMethod == PaymentMethodEnum::COD) {
             $data['extra']['COD'] = [
-                'amount' => max($orderTotal, 0),
+                'amount'   => max($orderTotal, 0),
                 'currency' => get_application_currency()->title,
             ];
         }
@@ -1126,11 +1125,11 @@ class EcommerceHelper
     public function getMandatoryFieldsAtCheckout(): array
     {
         return [
-            'phone' => trans('plugins/ecommerce::ecommerce.phone'),
-            'email' => trans('plugins/ecommerce::ecommerce.email'),
+            'phone'   => trans('plugins/ecommerce::ecommerce.phone'),
+            'email'   => trans('plugins/ecommerce::ecommerce.email'),
             'country' => trans('plugins/ecommerce::ecommerce.country'),
-            'state' => trans('plugins/ecommerce::ecommerce.state'),
-            'city' => trans('plugins/ecommerce::ecommerce.city'),
+            'state'   => trans('plugins/ecommerce::ecommerce.state'),
+            'city'    => trans('plugins/ecommerce::ecommerce.city'),
             'address' => trans('plugins/ecommerce::ecommerce.address'),
         ];
     }
@@ -1201,16 +1200,24 @@ class EcommerceHelper
         Cache::forget('ecommerce_product_price_range');
     }
 
+    // public function isEnabledFilterProductsByCategories(): bool
+    // {
+    //     return (bool) get_ecommerce_setting('enable_filter_products_by_categories', true);
+    // }
     public function isEnabledFilterProductsByCategories(): bool
     {
-        return (bool) get_ecommerce_setting('enable_filter_products_by_categories', true);
+        $categories = eqhit_fetch_categories();
+        return is_array($categories) && count($categories) > 0;
     }
-
+    // public function isEnabledFilterProductsByBrands(): bool
+    // {
+    //     return (bool) get_ecommerce_setting('enable_filter_products_by_brands', true);
+    // }
     public function isEnabledFilterProductsByBrands(): bool
     {
-        return (bool) get_ecommerce_setting('enable_filter_products_by_brands', true);
+        $figCategories = eqhit_get_functional_system_categories();
+        return is_array($figCategories) && count($figCategories) > 0;
     }
-
     public function isEnabledFilterProductsByTags(): bool
     {
         return (bool) get_ecommerce_setting('enable_filter_products_by_tags', true);
@@ -1289,15 +1296,15 @@ class EcommerceHelper
 
     public function dataForFilter(?ProductCategory $category): array
     {
-        $rand = mt_rand();
+        $rand       = mt_rand();
         $urlCurrent = URL::current();
-        $brands = collect();
-        $tags = collect();
+        $brands     = collect();
+        $tags       = collect();
         $categories = collect();
 
         $categoriesRequest = (array) request()->input('categories', []);
-        $categoryId = $category?->getKey() ?: 0;
-        $categoryIds = [];
+        $categoryId        = $category?->getKey() ?: 0;
+        $categoryIds       = [];
 
         if ($this->isEnabledFilterProductsByCategories()) {
             $categoryIds = array_filter($categoryId ? [$categoryId] : $categoriesRequest);
@@ -1323,6 +1330,7 @@ class EcommerceHelper
                 $categories = ProductCategoryHelper::getProductCategoriesWithUrl($categoriesRequest)->sortBy('parent_id');
             } else {
                 $categories = ProductCategoryHelper::getProductCategoriesWithUrl();
+
             }
 
             if ($categoriesRequest) {
@@ -1393,7 +1401,7 @@ class EcommerceHelper
 
     public function dataPriceRanges(int $stepPrice = 1000, int $stepCount = 10): array
     {
-        $configKey = 'plugins.ecommerce.general.display_big_money_in_million_billion';
+        $configKey   = 'plugins.ecommerce.general.display_big_money_in_million_billion';
         $configValue = config($configKey);
 
         if (! $configValue) {
@@ -1404,25 +1412,25 @@ class EcommerceHelper
         $currency = get_application_currency();
 
         $priceRanges[] = [
-            'from' => 0,
-            'to' => $last = $stepPrice,
+            'from'  => 0,
+            'to'    => $last = $stepPrice,
             'label' => __('Below :toPrice', ['toPrice' => human_price_text($stepPrice, $currency)]),
         ];
 
         for ($i = 1; $i < $stepCount; $i++) {
             $priceRanges[] = [
-                'from' => $first = $last,
-                'to' => $last += $stepPrice,
+                'from'  => $first = $last,
+                'to'    => $last += $stepPrice,
                 'label' => __('From :fromPrice to :toPrice', [
                     'fromPrice' => human_price_text($first, $currency),
-                    'toPrice' => human_price_text($last, $currency),
+                    'toPrice'   => human_price_text($last, $currency),
                 ]),
             ];
         }
 
         $priceRanges[] = [
-            'from' => $last,
-            'to' => $maxPrice,
+            'from'  => $last,
+            'to'    => $maxPrice,
             'label' => __('Over :fromPrice', ['fromPrice' => human_price_text($last, $currency)]),
         ];
 
@@ -1436,7 +1444,7 @@ class EcommerceHelper
     public function useCityFieldAsTextField(): bool
     {
         return ! $this->loadCountriesStatesCitiesFromPluginLocation() ||
-            get_ecommerce_setting('use_city_field_as_field_text', false);
+        get_ecommerce_setting('use_city_field_as_field_text', false);
     }
 
     public function isLoginUsingPhone(): bool
@@ -1470,23 +1478,26 @@ class EcommerceHelper
             Theme::asset()
                 ->add('front-ecommerce-rtl-css', 'vendor/core/plugins/ecommerce/css/front-ecommerce-rtl.css', ['front-ecommerce-css'], version: $version);
         }
+        Theme::asset()
+             ->container('footer')
+            ->add('fig-filter', 'vendor/core/plugins/ecommerce/js/fig-filter.js', ['jquery'], [], $version);
 
         Theme::asset()
             ->container('footer')
-            ->add('front-ecommerce-js', 'vendor/core/plugins/ecommerce/js/front-ecommerce.js', ['jquery', 'lightgallery-js', 'slick-js'], version: $version);
+            ->add('front-ecommerce-js', 'vendor/core/plugins/ecommerce/js/front-ecommerce.js', ['jquery', 'lightgallery-js', 'slick-js', 'fig-filter'], version: $version);
 
         $currency = get_application_currency();
 
         $currencyData = Js::from([
-            'display_big_money' => config('plugins.ecommerce.general.display_big_money_in_million_billion'),
-            'billion' => __('billion'),
-            'million' => __('million'),
-            'is_prefix_symbol' => $currency->is_prefix_symbol,
-            'symbol' => $currency->symbol,
-            'title' => $currency->title,
-            'decimal_separator' => get_ecommerce_setting('decimal_separator', '.'),
-            'thousands_separator' => get_ecommerce_setting('thousands_separator', ','),
-            'number_after_dot' => $currency->decimals ?: 0,
+            'display_big_money'    => config('plugins.ecommerce.general.display_big_money_in_million_billion'),
+            'billion'              => __('billion'),
+            'million'              => __('million'),
+            'is_prefix_symbol'     => $currency->is_prefix_symbol,
+            'symbol'               => $currency->symbol,
+            'title'                => $currency->title,
+            'decimal_separator'    => get_ecommerce_setting('decimal_separator', '.'),
+            'thousands_separator'  => get_ecommerce_setting('thousands_separator', ','),
+            'number_after_dot'     => $currency->decimals ?: 0,
             'show_symbol_or_title' => true,
         ]);
 
@@ -1496,25 +1507,25 @@ class EcommerceHelper
         );
     }
 
-    public function getDefaultPageSlug(?string $key = null): array|string|null
+    public function getDefaultPageSlug(?string $key = null): array | string | null
     {
         $default = [
-            'login' => 'login',
-            'register' => 'register',
-            'reset_password' => 'password/reset',
-            'product_listing' => SlugHelper::getPrefix(Product::class) ?: 'products',
-            'cart' => 'cart',
-            'checkout' => 'checkout',
-            'order_tracking' => 'orders/tracking',
-            'wishlist' => 'wishlist',
-            'compare' => 'compare',
-            'customer_overview' => 'customer/overview',
-            'customer_address' => 'customer/address',
+            'login'                    => 'login',
+            'register'                 => 'register',
+            'reset_password'           => 'password/reset',
+            'product_listing'          => SlugHelper::getPrefix(Product::class) ?: 'products',
+            'cart'                     => 'cart',
+            'checkout'                 => 'checkout',
+            'order_tracking'           => 'orders/tracking',
+            'wishlist'                 => 'wishlist',
+            'compare'                  => 'compare',
+            'customer_overview'        => 'customer/overview',
+            'customer_address'         => 'customer/address',
             'customer_change_password' => 'customer/change-password',
-            'customer_downloads' => 'customer/downloads',
-            'customer_edit_account' => 'customer/edit-account',
-            'customer_order_returns' => 'customer/order-returns',
-            'customer_orders' => 'customer/orders',
+            'customer_downloads'       => 'customer/downloads',
+            'customer_edit_account'    => 'customer/edit-account',
+            'customer_order_returns'   => 'customer/order-returns',
+            'customer_orders'          => 'customer/orders',
             'customer_product_reviews' => 'customer/product-reviews',
         ];
 
@@ -1527,6 +1538,7 @@ class EcommerceHelper
 
     public function getPageSlug(string $key): ?string
     {
+
         return theme_option(sprintf('ecommerce_%s_page_slug', $key)) ?: $this->getDefaultPageSlug($key);
     }
 
@@ -1541,11 +1553,11 @@ class EcommerceHelper
     public function jsAttributes(string $action, Product $product, array $additional = []): string
     {
         $attributes = [
-            'data-bb-toggle' => $action,
-            'data-product-id' => $product->getKey(),
-            'data-product-name' => $product->name,
+            'data-bb-toggle'     => $action,
+            'data-product-id'    => $product->getKey(),
+            'data-product-name'  => $product->name,
             'data-product-price' => $product->price,
-            'data-product-sku' => $product->sku,
+            'data-product-sku'   => $product->sku,
         ];
 
         $category = $product->categories->sortByDesc('id')->first();
@@ -1577,7 +1589,7 @@ class EcommerceHelper
             $attributes['data-product-categories'] = $categories->pluck('name')->implode(',');
         }
 
-        $attributes = [...$attributes, ...$additional];
+        $attributes = [ ...$attributes, ...$additional];
 
         return Html::attributes(apply_filters('ecommerce_js_attributes', $attributes, $action, $product));
     }
@@ -1588,7 +1600,7 @@ class EcommerceHelper
     }
 
     public function registerRoutes(
-        Closure|callable $closure,
+        Closure | callable $closure,
         array $middleware = []
     ): RouteRegistrar {
         return AdminHelper::registerRoutes(function () use ($closure, $middleware): void {
@@ -1673,33 +1685,33 @@ class EcommerceHelper
 
             $fields = [
                 [
-                    'type' => 'mediaFile',
-                    'label' => trans('plugins/ecommerce::products.form.video_file'),
+                    'type'       => 'mediaFile',
+                    'label'      => trans('plugins/ecommerce::products.form.video_file'),
                     'attributes' => [
-                        'name' => 'file',
+                        'name'  => 'file',
                         'value' => null,
                     ],
                 ],
                 [
-                    'type' => 'text',
-                    'label' => trans('plugins/ecommerce::products.form.video_url'),
+                    'type'       => 'text',
+                    'label'      => trans('plugins/ecommerce::products.form.video_url'),
                     'attributes' => [
-                        'name' => 'url',
-                        'value' => null,
+                        'name'    => 'url',
+                        'value'   => null,
                         'options' => [
-                            'class' => 'form-control',
+                            'class'       => 'form-control',
                             'placeholder' => trans('plugins/ecommerce::products.form.video_url_help'),
                         ],
                     ],
                 ],
                 [
-                    'type' => 'mediaImage',
-                    'label' => trans('plugins/ecommerce::products.form.video_thumbnail'),
+                    'type'       => 'mediaImage',
+                    'label'      => trans('plugins/ecommerce::products.form.video_thumbnail'),
                     'attributes' => [
-                        'name' => 'thumbnail',
-                        'value' => null,
+                        'name'    => 'thumbnail',
+                        'value'   => null,
                         'options' => [
-                            'class' => 'form-control',
+                            'class'       => 'form-control',
                             'placeholder' => trans('plugins/ecommerce::products.form.video_thumbnail_help'),
                         ],
                     ],
@@ -1709,7 +1721,7 @@ class EcommerceHelper
             if (! AdminHelper::isInAdmin(true) || ! auth()->check()) {
                 $afterField = 'images';
 
-                $fields[0]['type'] = 'hidden';
+                $fields[0]['type']  = 'hidden';
                 $fields[0]['label'] = false;
                 $fields[1]['label'] = trans('plugins/ecommerce::products.form.enter_video_url');
             }
@@ -1729,17 +1741,17 @@ class EcommerceHelper
     {
         app('events')->listen(RenderingThemeOptionSettings::class, function (): void {
             ThemeOption::setField([
-                'id' => 'ecommerce_product_gallery_image_style',
+                'id'         => 'ecommerce_product_gallery_image_style',
                 'section_id' => 'opt-text-subsection-ecommerce',
-                'type' => 'customSelect',
-                'label' => __('Product gallery image style'),
+                'type'       => 'customSelect',
+                'label'      => __('Product gallery image style'),
                 'attributes' => [
-                    'name' => 'ecommerce_product_gallery_image_style',
-                    'list' => [
-                        'vertical' => __('Vertical'),
+                    'name'    => 'ecommerce_product_gallery_image_style',
+                    'list'    => [
+                        'vertical'   => __('Vertical'),
                         'horizontal' => __('Horizontal'),
                     ],
-                    'value' => 'vertical',
+                    'value'   => 'vertical',
                     'options' => [
                         'class' => 'form-control',
                     ],
@@ -1747,19 +1759,19 @@ class EcommerceHelper
             ]);
 
             ThemeOption::setField([
-                'id' => 'ecommerce_product_gallery_video_position',
+                'id'         => 'ecommerce_product_gallery_video_position',
                 'section_id' => 'opt-text-subsection-ecommerce',
-                'type' => 'customSelect',
-                'label' => __('Product gallery video position'),
+                'type'       => 'customSelect',
+                'label'      => __('Product gallery video position'),
                 'attributes' => [
-                    'name' => 'ecommerce_product_gallery_video_position',
-                    'list' => [
-                        'top' => __('Top'),
+                    'name'    => 'ecommerce_product_gallery_video_position',
+                    'list'    => [
+                        'top'               => __('Top'),
                         'after_first_image' => __('After the first image'),
                         'before_last_image' => __('Before the last image'),
-                        'bottom' => __('Bottom'),
+                        'bottom'            => __('Bottom'),
                     ],
-                    'value' => 'bottom',
+                    'value'   => 'bottom',
                     'options' => [
                         'class' => 'form-control',
                     ],
@@ -1781,10 +1793,10 @@ class EcommerceHelper
     public function hasAnyProductFilters(): bool
     {
         return $this->isEnabledFilterProductsByCategories() ||
-            $this->isEnabledFilterProductsByBrands() ||
-            $this->isEnabledFilterProductsByTags() ||
-            $this->isEnabledFilterProductsByAttributes() ||
-            $this->isEnabledFilterProductsByPrice();
+        $this->isEnabledFilterProductsByBrands() ||
+        $this->isEnabledFilterProductsByTags() ||
+        $this->isEnabledFilterProductsByAttributes() ||
+        $this->isEnabledFilterProductsByPrice();
     }
 
     public function getAssetVersion(): string

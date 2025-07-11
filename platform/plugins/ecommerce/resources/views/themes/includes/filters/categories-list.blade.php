@@ -1,72 +1,96 @@
 @php
-    $categoriesRequest ??= [];
-    $categoryId ??= 0;
-    $urlCurrent ??= url()->current();
+$categoriesRequest ??= [];
+$categoryId ??= 0;
+$urlCurrent ??= url()->current();
 
-    if (!isset($groupedCategories)) {
-        $groupedCategories = $categories->groupBy('parent_id');
-    }
+if (!isset($groupedCategories)) {
+$groupedCategories = $categories->groupBy('parent_id');
+}
 
-    $currentCategories = $groupedCategories->get($parentId ?? 0);
+$currentCategories = $groupedCategories->get($parentId ?? null);
 @endphp
 
 @if ($currentCategories)
-    <ul
-        @if(
-            $isCategoriesListActive = (in_array($categoryId, $categoriesRequest)
-            || isset($category) && $categoryId == $category->id)
-        )
-            style="display: block !important;"
-        @endif
+<ul class="bb-product-filter-items active">
+    @foreach ($categories as $category)
+        <li class="bb-product-filter-item">
+            <a href="{{ $category->url }}"
+               @class(['bb-product-filter-link', 'active' => $urlCurrent == $category->url])
+               data-id="{{ $category->id ?? \Illuminate\Support\Str::slug($category->name) }}">
 
-        class="bb-product-filter-items @if ($isCategoriesListActive) active @endif"
+                @if ($category->icon_image)
+                    {{ RvMedia::image($category->icon_image, $category->name) }}
+                @elseif ($category->icon)
+                    {!! BaseHelper::renderIcon($category->icon) !!}
+                @else
+                    <x-core::icon name="ti ti-folder" />
+                @endif
+
+                {{ $category->name }}
+            </a>
+        </li>
+    @endforeach
+</ul>
+
+{{-- <ul @if( $isCategoriesListActive=(in_array($categoryId, $categoriesRequest) || isset($category) && $categoryId==$category->id)
+    )
+    style="display: block !important;"
+    @endif
+
+    class="bb-product-filter-items @if ($isCategoriesListActive) active @endif"
     >
-        @foreach ($currentCategories as $category)
-            @if (! empty($categoriesRequest) && $loop->first && ! $category->parent_id)
-                <li class="bb-product-filter-item">
-                    <a href="{{ $currentMainFilterUrl ?? route('public.products') }}" @class(['bb-product-filter-link', 'active' => empty($categoriesRequest)])>
-                        <x-core::icon name="ti ti-chevron-left" />
 
-                        {{ __('All categories') }}
-                    </a>
-                </li>
+    @foreach ($currentCategories as $category)
+
+    @if (! empty($categoriesRequest) && $loop->first && ! $category->parent_id)
+    <li class="bb-product-filter-item">
+        <a href="{{ $currentMainFilterUrl ?? route('public.products') }}" @class(['bb-product-filter-link', 'active'=> empty($categoriesRequest)])>
+            <x-core::icon name="ti ti-chevron-left" />
+
+            {{ __('All categories') }}
+        </a>
+    </li>
+    @endif
+
+    <li class="bb-product-filter-item">
+        {{-- <a
+                    href="{{ route('public.single', $category->url) }}"
+        @class(['bb-product-filter-link', 'active' => $categoryId == $category->id || $urlCurrent == route('public.single', $category->url)])
+        data-id="{{ $category->id }}"
+        >
+        <a href="{{ $category->url }}" @class(['bb-product-filter-link', 'active'=> $categoryId == $category->id || $urlCurrent == $category->url])
+            data-id="{{ $category->id ?? \Illuminate\Support\Str::slug($category->name) }}"
+            >
+
+            @if (! $category->parent_id)
+            @if ($category->icon_image)
+            {{ RvMedia::image($category->icon_image, $category->name) }}
+            @elseif ($category->icon)
+            {!! BaseHelper::renderIcon($category->icon) !!}
+            @else
+            <x-core::icon name="ti ti-folder" />
+            @endif
             @endif
 
-            <li class="bb-product-filter-item">
-                <a
-                    href="{{ route('public.single', $category->url) }}"
-                    @class(['bb-product-filter-link', 'active' => $categoryId == $category->id || $urlCurrent == route('public.single', $category->url)])
-                    data-id="{{ $category->id }}"
-                >
-                    @if (! $category->parent_id)
-                        @if ($category->icon_image)
-                            {{ RvMedia::image($category->icon_image, $category->name) }}
-                        @elseif ($category->icon)
-                            {!! BaseHelper::renderIcon($category->icon) !!}
-                        @else
-                            <x-core::icon name="ti ti-folder" />
-                        @endif
-                    @endif
+            {{ $category->name }}
+        </a>
 
-                    {{ $category->name }}
-                </a>
+        @php
+        $hasChildren = $groupedCategories->has($category->id);
+        @endphp
 
-                @php
-                    $hasChildren = $groupedCategories->has($category->id);
-                @endphp
+        @if ($hasChildren)
+        @include(EcommerceHelper::viewPath('includes.filters.categories-list'), [
+        'categories' => $groupedCategories,
+        'parentId' => $category->id,
+        ])
 
-                @if ($hasChildren)
-                    @include(EcommerceHelper::viewPath('includes.filters.categories-list'), [
-                        'categories' => $groupedCategories,
-                        'parentId' => $category->id,
-                    ])
-
-                    <button data-bb-toggle="toggle-product-categories-tree">
-                        <x-core::icon name="ti ti-plus" />
-                        <x-core::icon name="ti ti-minus" style="display: none;" />
-                    </button>
-                @endif
-            </li>
-        @endforeach
-    </ul>
+        <button data-bb-toggle="toggle-product-categories-tree">
+            <x-core::icon name="ti ti-plus" />
+            <x-core::icon name="ti ti-minus" style="display: none;" />
+        </button>
+        @endif
+    </li>
+    @endforeach
+</ul> --}}
 @endif

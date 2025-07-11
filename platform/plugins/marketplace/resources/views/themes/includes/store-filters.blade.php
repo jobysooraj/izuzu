@@ -20,7 +20,8 @@
         </div>
 
         <div class="bb-shop-sidebar">
-            <form action="{{ URL::current() }}" method="GET" class="bb-product-form-filter">
+            {{-- class="bb-product-form-filter" --}}
+            <form action="{{ URL::current() }}" method="GET" >
                 @include(EcommerceHelper::viewPath('includes.filters.filter-hidden-fields'))
                 <input name="categories[]" type="hidden" value="{{ $categoryId }}">
 

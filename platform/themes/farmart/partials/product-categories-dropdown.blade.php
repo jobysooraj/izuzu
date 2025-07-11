@@ -1,4 +1,4 @@
-@php
+{{-- @php
     $groupedCategories = ProductCategoryHelper::getProductCategoriesWithUrl()->groupBy('parent_id');
 
     $currentCategories = $groupedCategories->get(0);
@@ -110,6 +110,21 @@
                     </div>
                 </div>
             @endif
+        </li>
+    @endforeach
+@endif --}}
+@php
+    $categories = eqhit_fetch_categories(); // Defined in your helper file
+@endphp
+
+@if (!empty($categories))
+
+    @foreach ($categories as $category)
+        <li>
+            <a href="{{ url('/products?category=' . $category['key']) }}">
+                <i class="fas fa-tools"></i>
+                <span class="ms-1">{{ $category['name'] }}</span>
+            </a>
         </li>
     @endforeach
 @endif

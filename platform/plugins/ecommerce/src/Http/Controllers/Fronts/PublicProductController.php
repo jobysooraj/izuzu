@@ -1,12 +1,10 @@
 <?php
-
 namespace Botble\Ecommerce\Http\Controllers\Fronts;
 
 use Botble\Base\Enums\BaseStatusEnum;
 use Botble\Base\Facades\BaseHelper;
 use Botble\Base\Http\Controllers\BaseController;
 use Botble\Base\Models\BaseQueryBuilder;
-use Botble\Ecommerce\AdsTracking\GoogleTagManager;
 use Botble\Ecommerce\Facades\EcommerceHelper;
 use Botble\Ecommerce\Forms\Fronts\OrderTrackingForm;
 use Botble\Ecommerce\Http\Requests\Fronts\OrderTrackingRequest;
@@ -17,8 +15,8 @@ use Botble\Ecommerce\Models\ProductCategory;
 use Botble\Ecommerce\Models\ProductVariation;
 use Botble\Ecommerce\Models\ProductVariationItem;
 use Botble\Ecommerce\Repositories\Interfaces\ProductInterface;
+use Botble\Ecommerce\Services\Eqhit\EqhitSearchService;
 use Botble\Ecommerce\Services\HandleFrontPages;
-use Botble\Ecommerce\Services\Products\GetProductService;
 use Botble\Ecommerce\Services\Products\GetProductWithCrossSalesBySlugService;
 use Botble\Ecommerce\Services\Products\ProductCrossSalePriceService;
 use Botble\Media\Facades\RvMedia;
@@ -29,58 +27,164 @@ use Illuminate\Http\Request;
 
 class PublicProductController extends BaseController
 {
-    public function getProducts(Request $request, GetProductService $productService)
+    public function getProducts(Request $request, EqhitSearchService $eqhitSearchService)
     {
+
         if (! EcommerceHelper::productFilterParamsValidated($request)) {
-            return $this
-                ->httpResponse()
-                ->setNextUrl(route('public.products'));
+            return $this->httpResponse()->setNextUrl(route('public.products'));
         }
 
-        SeoHelper::setTitle(theme_option('ecommerce_products_seo_title') ?: __('Products'))
-            ->setDescription(theme_option('ecommerce_products_seo_description'));
+        $path = $request->path();
 
-        $with = EcommerceHelper::withProductEagerLoadingRelations();
-
-        if (($query = BaseHelper::stringify($request->input('q'))) && ! $request->ajax()) {
-            $products = $productService->getProduct($request, null, null, $with);
-
-            SeoHelper::setTitle(__('Search result for ":query"', compact('query')));
-
-            Theme::breadcrumb()
-                ->add(__('Search'), route('public.products'));
-
-            SeoHelper::meta()
-                ->setUrl(route('public.products'));
-
-            return Theme::scope(
-                'ecommerce.search',
-                compact('products', 'query'),
-                'plugins/ecommerce::themes.search'
-            )->render();
-        }
-
+        SeoHelper::setTitle(__('Products'))->setDescription(__('Search via EqHit'));
         Theme::breadcrumb()->add(__('Products'), route('public.products'));
 
-        $products = $productService->getProduct($request, null, null, $with);
+        [$paginated, $queries, $error] = $this->handleProductSearchAndRender($request, $eqhitSearchService);
 
-        if ($request->ajax()) {
-            return $this->ajaxFilterProductsResponse($products);
-        }
-
-        do_action(PRODUCT_MODULE_SCREEN_NAME);
-
-        app(GoogleTagManager::class)->viewItemList($products->all(), 'Product List');
-
-        return Theme::scope(
-            'ecommerce.products',
-            compact('products'),
-            'plugins/ecommerce::themes.products'
-        )->render();
+        return Theme::scope('ecommerce.products', [
+            'products' => $paginated,
+            'queries'  => $queries,
+            'error'    => $error,
+        ])->render();
     }
 
+/**
+ * AJAX handler for Farmart sidebar filters
+ */
+
+    public function filterProductsAjax(Request $request, EqhitSearchService $eqhitSearchService)
+    {
+        [$paginated, $queries, $error] = $this->handleProductSearchAndRender($request, $eqhitSearchService);
+
+        if ($request->ajax()) {
+            $html = view('plugins/ecommerce::themes.includes.product-items', [
+                'products' => $paginated,
+            ])->render();
+            $queryParams = $request->except(['vin']);
+
+            return response()->json([
+                'data'         => (string) $html,
+                'redirect_url' => route('public.products') . '?' . http_build_query($queryParams),
+                'error'        => false,
+            ]);
+        }
+
+        return Theme::scope('ecommerce.products', [
+            'products' => $paginated,
+            'queries'  => $queries,
+            'error'    => $error,
+        ])->render();
+
+    }
+
+    protected function handleProductSearchAndRender(Request $request, EqhitSearchService $eqhitSearchService): array
+    {
+        $pno  = trim($request->input('pno'));
+        $name = trim($request->input('name'));
+        if (! empty($pno) || ! empty($name)) {
+            $filteredInput = collect($request->all())
+                ->except(['fig', 'fig[]']) // Remove all fig-related inputs
+                ->toArray();
+
+            $request->replace($filteredInput);
+        } else {
+            $figParam = $request->input('fig', '');
+            $figs     = is_array($figParam) ? $figParam : explode(',', (string) $figParam);
+
+            $request->merge(['fig' => $figs]);
+        }
+        $response = $eqhitSearchService->searchParts($request);
+
+        $queries = BaseHelper::stringify($request->input('q'));
+        $error   = $response['error'] ?? null;
+
+        $paginated = $response['data'];
+        return [$paginated, $queries, $error];
+    }
+
+    // public function getProducts(Request $request, GetProductService $productService)
+    // {
+
+    //     if (! EcommerceHelper::productFilterParamsValidated($request)) {
+    //         return $this
+    //             ->httpResponse()
+    //             ->setNextUrl(route('public.products'));
+    //     }
+
+    //     SeoHelper::setTitle(theme_option('ecommerce_products_seo_title') ?: __('Products'))
+    //         ->setDescription(theme_option('ecommerce_products_seo_description'));
+
+    //     $with = EcommerceHelper::withProductEagerLoadingRelations();
+
+    //     if (($query = BaseHelper::stringify($request->input('q'))) && ! $request->ajax()) {
+    //         $products = $productService->getProduct($request, null, null, $with);
+
+    //         SeoHelper::setTitle(__('Search result for ":query"', compact('query')));
+
+    //         Theme::breadcrumb()
+    //             ->add(__('Search'), route('public.products'));
+
+    //         SeoHelper::meta()
+    //             ->setUrl(route('public.products'));
+
+    //         return Theme::scope(
+    //             'ecommerce.search',
+    //             compact('products', 'query'),
+    //             'plugins/ecommerce::themes.search'
+    //         )->render();
+    //     }
+
+    //     Theme::breadcrumb()->add(__('Products'), route('public.products'));
+
+    //     $products = $productService->getProduct($request, null, null, $with);
+
+    //     if ($request->ajax()) {
+    //         return $this->ajaxFilterProductsResponse($products);
+    //     }
+
+    //     do_action(PRODUCT_MODULE_SCREEN_NAME);
+
+    //     app(GoogleTagManager::class)->viewItemList($products->all(), 'Product List');
+
+    //     return Theme::scope(
+    //         'ecommerce.products',
+    //         compact('products'),
+    //         'plugins/ecommerce::themes.products'
+    //     )->render();
+    // }
+
+    // public function getProductDetail(string $slug, string $pno, EqhitSearchService $eqhitSearchService, Request $request)
+    // {
+
+    //     $fakeRequest = new Request([
+    //         'pno' => $pno,
+    //         'q'   => BaseHelper::stringify($request->input('q')),
+    //     ]);
+
+    //     $response = $eqhitSearchService->searchParts($fakeRequest);
+
+    //     if (empty($response['data'])) {
+    //         abort(404);
+    //     }
+
+    //     $product = collect($response['data'])
+    //         ->flatten(1)
+    //         ->filter(fn($item) => is_array($item) && ($item['pno'] ?? null) === $pno)
+    //         ->map(fn($item) => (object) $item)
+    //         ->first();
+
+    //     if (! $product) {
+    //         abort(404);
+    //     }
+
+    //     SeoHelper::setTitle($product->name ?? __('Product Detail'));
+    //     Theme::breadcrumb()
+    //         ->add(__('Products'), route('public.products'))
+    //         ->add($product->name ?? '');
+    //     return Theme::scope('ecommerce.product-detail', compact('product'))->render();
+    // }
     public function getProductVariation(
-        int|string $id,
+        int | string $id,
         Request $request,
         ProductInterface $productRepository,
         GetProductWithCrossSalesBySlugService $getProductWithCrossSalesBySlugService,
@@ -100,7 +204,7 @@ class PublicProductController extends BaseController
                         'ec_product_variations.id' => $variation->getKey(),
                         'original_products.status' => BaseStatusEnum::PUBLISHED,
                     ],
-                    'select' => [
+                    'select'    => [
                         'ec_products.id',
                         'ec_products.name',
                         'ec_products.quantity',
@@ -123,7 +227,7 @@ class PublicProductController extends BaseController
                         'ec_products.wide',
                         'ec_products.length',
                     ],
-                    'take' => 1,
+                    'take'      => 1,
                 ]);
             }
         } else {
@@ -269,7 +373,7 @@ class PublicProductController extends BaseController
         $variationInfo = $productVariationsInfo;
 
         $unavailableAttributeIds = [];
-        $variationNextIds = [];
+        $variationNextIds        = [];
         foreach ($attributeSets as $key => $set) {
             if ($key != 0) {
                 $variationInfo = $productVariationsInfo
@@ -308,7 +412,7 @@ class PublicProductController extends BaseController
         }
 
         $product->unavailableAttributeIds = $unavailableAttributeIds;
-        $product->selectedAttributes = $selectedAttributes;
+        $product->selectedAttributes      = $selectedAttributes;
 
         if (
             $request->filled('reference_product')
@@ -346,14 +450,14 @@ class PublicProductController extends BaseController
                 ->when(EcommerceHelper::isLoginUsingPhone(), function (BaseQueryBuilder $query) use ($request): void {
                     $query->where(function (BaseQueryBuilder $query) use ($request): void {
                         $query
-                            ->whereHas('address', fn ($subQuery) => $subQuery->where('phone', $request->input('phone')))
-                            ->orWhereHas('user', fn ($subQuery) => $subQuery->where('phone', $request->input('phone')));
+                            ->whereHas('address', fn($subQuery) => $subQuery->where('phone', $request->input('phone')))
+                            ->orWhereHas('user', fn($subQuery) => $subQuery->where('phone', $request->input('phone')));
                     });
                 }, function (BaseQueryBuilder $query) use ($request): void {
                     $query->where(function (Builder $query) use ($request): void {
                         $query
-                            ->whereHas('address', fn ($subQuery) => $subQuery->where('email', $request->input('email')))
-                            ->orWhereHas('user', fn ($subQuery) => $subQuery->where('email', $request->input('email')));
+                            ->whereHas('address', fn($subQuery) => $subQuery->where('email', $request->input('email')))
+                            ->orWhereHas('user', fn($subQuery) => $subQuery->where('email', $request->input('email')));
                     });
                 });
 
@@ -380,6 +484,7 @@ class PublicProductController extends BaseController
 
     protected function ajaxFilterProductsResponse($products, ?ProductCategory $category = null)
     {
+
         return app(HandleFrontPages::class)->ajaxFilterProductsResponse($products, $this->httpResponse(), $category);
     }
 }

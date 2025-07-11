@@ -17,50 +17,50 @@ use Illuminate\Support\Facades\Route;
 AdminHelper::registerRoutes(function (): void {
     Route::group(['namespace' => 'Botble\Ecommerce\Http\Controllers', 'prefix' => 'ecommerce'], function (): void {
         Route::post('update-currencies-from-exchange-api', [
-            'as' => 'ecommerce.setting.update-currencies-from-exchange-api',
-            'uses' => 'EcommerceController@updateCurrenciesFromExchangeApi',
+            'as'         => 'ecommerce.setting.update-currencies-from-exchange-api',
+            'uses'       => 'EcommerceController@updateCurrenciesFromExchangeApi',
             'permission' => 'ecommerce.settings',
         ]);
 
         Route::post('clear-cache-currency-rates', [
-            'as' => 'ecommerce.setting.clear-cache-currency-rates',
-            'uses' => 'EcommerceController@clearCacheCurrencyRates',
+            'as'         => 'ecommerce.setting.clear-cache-currency-rates',
+            'uses'       => 'EcommerceController@clearCacheCurrencyRates',
             'permission' => 'ecommerce.settings',
         ]);
 
         Route::get('ajax/countries', [
-            'as' => 'ajax.countries.list',
-            'uses' => 'EcommerceController@ajaxGetCountries',
+            'as'         => 'ajax.countries.list',
+            'uses'       => 'EcommerceController@ajaxGetCountries',
             'permission' => false,
         ]);
 
         Route::get('store-locators/form/{id?}', [
-            'as' => 'ecommerce.store-locators.form',
-            'uses' => 'StoreLocatorController@edit',
+            'as'         => 'ecommerce.store-locators.form',
+            'uses'       => 'StoreLocatorController@edit',
             'permission' => 'ecommerce.settings',
         ]);
 
         Route::post('store-locators/edit/{locator}', [
-            'as' => 'ecommerce.store-locators.edit.post',
-            'uses' => 'StoreLocatorController@update',
+            'as'         => 'ecommerce.store-locators.edit.post',
+            'uses'       => 'StoreLocatorController@update',
             'permission' => 'ecommerce.settings',
         ])->wherePrimaryKey();
 
         Route::post('store-locators/create', [
-            'as' => 'ecommerce.store-locators.create',
-            'uses' => 'StoreLocatorController@store',
+            'as'         => 'ecommerce.store-locators.create',
+            'uses'       => 'StoreLocatorController@store',
             'permission' => 'ecommerce.settings',
         ]);
 
         Route::post('store-locators/delete/{locator}', [
-            'as' => 'ecommerce.store-locators.destroy',
-            'uses' => 'StoreLocatorController@destroy',
+            'as'         => 'ecommerce.store-locators.destroy',
+            'uses'       => 'StoreLocatorController@destroy',
             'permission' => 'ecommerce.settings',
         ])->wherePrimaryKey();
 
         Route::post('store-locators/update-primary-store', [
-            'as' => 'ecommerce.store-locators.update-primary-store',
-            'uses' => 'ChangePrimaryStoreController@__invoke',
+            'as'         => 'ecommerce.store-locators.update-primary-store',
+            'uses'       => 'ChangePrimaryStoreController@__invoke',
             'permission' => 'ecommerce.settings',
         ]);
 
@@ -69,20 +69,20 @@ AdminHelper::registerRoutes(function (): void {
                 ->parameters(['' => 'product_category']);
 
             Route::put('update-tree', [
-                'as' => 'update-tree',
-                'uses' => 'ProductCategoryController@updateTree',
+                'as'         => 'update-tree',
+                'uses'       => 'ProductCategoryController@updateTree',
                 'permission' => 'product-categories.edit',
             ]);
 
             Route::get('search', [
-                'as' => 'search',
-                'uses' => 'ProductCategoryController@getSearch',
+                'as'         => 'search',
+                'uses'       => 'ProductCategoryController@getSearch',
                 'permission' => 'product-categories.index',
             ]);
 
             Route::get('get-list-product-categories-for-select', [
-                'as' => 'get-list-product-categories-for-select',
-                'uses' => 'ProductCategoryController@getListForSelect',
+                'as'         => 'get-list-product-categories-for-select',
+                'uses'       => 'ProductCategoryController@getListForSelect',
                 'permission' => 'product-categories.index',
             ]);
         });
@@ -92,8 +92,8 @@ AdminHelper::registerRoutes(function (): void {
                 ->parameters(['' => 'product-tag']);
 
             Route::get('all', [
-                'as' => 'all',
-                'uses' => 'ProductTagController@getAllTags',
+                'as'         => 'all',
+                'uses'       => 'ProductTagController@getAllTags',
                 'permission' => 'product-tag.index',
             ]);
         });
@@ -102,8 +102,8 @@ AdminHelper::registerRoutes(function (): void {
             Route::resource('', 'ProductOptionController')->parameters(['' => 'option']);
 
             Route::get('ajax', [
-                'as' => 'ajaxInfo',
-                'uses' => 'ProductOptionController@ajaxInfo',
+                'as'         => 'ajaxInfo',
+                'uses'       => 'ProductOptionController@ajaxInfo',
                 'permission' => 'products.edit',
             ]);
         });
@@ -113,8 +113,8 @@ AdminHelper::registerRoutes(function (): void {
                 ->parameters(['' => 'brand']);
 
             Route::get('search', [
-                'as' => 'search',
-                'uses' => 'BrandController@getSearch',
+                'as'         => 'search',
+                'uses'       => 'BrandController@getSearch',
                 'permission' => 'brands.index',
             ]);
         });
@@ -124,14 +124,14 @@ AdminHelper::registerRoutes(function (): void {
                 ->parameters(['' => 'product_collection']);
 
             Route::get('get-list-product-collections-for-select', [
-                'as' => 'get-list-product-collections-for-select',
-                'uses' => 'ProductCollectionController@getListForSelect',
+                'as'         => 'get-list-product-collections-for-select',
+                'uses'       => 'ProductCollectionController@getListForSelect',
                 'permission' => 'product-collections.index',
             ]);
 
             Route::get('get-product-collection/{productCollection?}', [
-                'as' => 'get-product-collection',
-                'uses' => 'ProductCollectionController@getProductCollection',
+                'as'         => 'get-product-collection',
+                'uses'       => 'ProductCollectionController@getProductCollection',
                 'permission' => 'product-collections.edit',
             ])->wherePrimaryKey();
         });
@@ -143,31 +143,31 @@ AdminHelper::registerRoutes(function (): void {
 
         Route::group(['prefix' => 'reports'], function (): void {
             Route::get('', [
-                'as' => 'ecommerce.report.index',
+                'as'   => 'ecommerce.report.index',
                 'uses' => 'ReportController@getIndex',
             ]);
 
             Route::post('top-selling-products', [
-                'as' => 'ecommerce.report.top-selling-products',
-                'uses' => 'ReportController@getTopSellingProducts',
+                'as'         => 'ecommerce.report.top-selling-products',
+                'uses'       => 'ReportController@getTopSellingProducts',
                 'permission' => 'ecommerce.report.index',
             ]);
 
             Route::post('recent-orders', [
-                'as' => 'ecommerce.report.recent-orders',
-                'uses' => 'ReportController@getRecentOrders',
+                'as'         => 'ecommerce.report.recent-orders',
+                'uses'       => 'ReportController@getRecentOrders',
                 'permission' => 'ecommerce.report.index',
             ]);
 
             Route::post('trending-products', [
-                'as' => 'ecommerce.report.trending-products',
-                'uses' => 'ReportController@getTrendingProducts',
+                'as'         => 'ecommerce.report.trending-products',
+                'uses'       => 'ReportController@getTrendingProducts',
                 'permission' => 'ecommerce.report.index',
             ]);
 
             Route::get('dashboard-general-report', [
-                'as' => 'ecommerce.report.dashboard-widget.general',
-                'uses' => 'ReportController@getDashboardWidgetGeneral',
+                'as'         => 'ecommerce.report.dashboard-widget.general',
+                'uses'       => 'ReportController@getDashboardWidgetGeneral',
                 'permission' => 'ecommerce.report.index',
             ]);
         });
@@ -210,21 +210,32 @@ Theme::registerRoutes(function (): void {
         Route::group(['namespace' => 'Botble\Ecommerce\Http\Controllers\Fronts'], function (): void {
             Route::get(EcommerceHelper::getPageSlug('product_listing'), [
                 'uses' => 'PublicProductController@getProducts',
-                'as' => 'public.products',
+                'as'   => 'public.products',
+            ]);
+            //newly added prodcut route
+            Route::get('products/{slug}-{pno}', [
+                'uses' => 'PublicProductController@getProductDetail',
+                'as'   => 'public.products.detail',
+            ])->where('slug', '.*');
+            //newly added product filter route for
+            Route::get('products/filter', [
+                'uses' => 'PublicProductController@filterProductsAjax',
+                'as'   => 'public.products.filter.ajax',
             ]);
 
+
             Route::get('currency/switch/{code?}', [
-                'as' => 'public.change-currency',
+                'as'   => 'public.change-currency',
                 'uses' => 'PublicEcommerceController@changeCurrency',
             ]);
 
             Route::get('product-variation/{id}', [
-                'as' => 'public.web.get-variation-by-attributes',
+                'as'   => 'public.web.get-variation-by-attributes',
                 'uses' => 'PublicProductController@getProductVariation',
             ])->wherePrimaryKey();
 
             Route::get(EcommerceHelper::getPageSlug('order_tracking'), [
-                'as' => 'public.orders.tracking',
+                'as'   => 'public.orders.tracking',
                 'uses' => 'PublicProductController@getOrderTracking',
             ])->wherePrimaryKey();
 

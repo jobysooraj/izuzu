@@ -1,6 +1,6 @@
 @php
 Theme::layout('full-width');
-$products->loadMissing('defaultVariation');
+
 @endphp
 
 {!! $widgets = dynamic_sidebar('products_list_sidebar') !!}
@@ -17,6 +17,7 @@ $products->loadMissing('defaultVariation');
                     <h1 class="h2 catalog-header__title d-none d-lg-block">{{ SeoHelper::getTitleOnly() }}</h1>
 
                     @if (EcommerceHelper::hasAnyProductFilters())
+
                     <a class="d-lg-none sidebar-filter-mobile" href="#">
                         <span class="svg-icon me-2">
                             <svg>
@@ -29,8 +30,24 @@ $products->loadMissing('defaultVariation');
                 </div>
                 <div class="col-auto catalog-header__right">
                     <div class="catalog-toolbar row align-items-center">
-                        @include(Theme::getThemeNamespace('views.ecommerce.includes.sort'))
-                        @include(Theme::getThemeNamespace('views.ecommerce.includes.layout'))
+                        <form method="GET"  class="bb-product-form-filter d-flex align-items-end gap-2 flex-wrap" data-action="{{ route('public.products.filter.ajax') }}"  action="{{ route('public.products.filter.ajax') }}" >
+                            {{-- @csrf --}}
+                            @include(EcommerceHelper::viewPath('includes.filters.filter-hidden-fields'))
+
+                            <div>
+                                <input type="text" name="pno" value="{{ request('pno') }}" class="form-control" placeholder="Search by Part No (Pno)">
+                            </div>
+
+                            <div>
+                                <input type="text" name="name" value="{{ request('name') }}" class="form-control" placeholder="Search by Name">
+                            </div>
+
+                            <div>
+                                <button type="submit" class="btn btn-sm btn-primary">{{ __('Search') }}</button>
+                            </div>
+                        </form>
+                        {{-- @include(Theme::getThemeNamespace('views.ecommerce.includes.sort'))
+                        @include(Theme::getThemeNamespace('views.ecommerce.includes.layout')) --}}
                     </div>
                 </div>
             </div>
@@ -57,6 +74,7 @@ $products->loadMissing('defaultVariation');
             </aside>
         </div>
         @endif
+
         <div @class(['products-listing position-relative bb-product-items-wrapper col-12', 'col-xxl-10 col-lg-9'=> EcommerceHelper::hasAnyProductFilters()])>
             @include(Theme::getThemeNamespace('views.ecommerce.includes.product-items'))
         </div>

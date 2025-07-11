@@ -1,4 +1,4 @@
-<form
+{{-- <form
     class="cart-form"
     action="{{ route('public.cart.add-to-cart') }}"
     method="POST"
@@ -65,4 +65,4 @@
             @endif
         </div>
     @endif
-</form>
+</form> --}}

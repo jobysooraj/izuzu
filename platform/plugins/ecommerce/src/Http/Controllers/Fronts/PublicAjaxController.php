@@ -2,7 +2,6 @@
 namespace Botble\Ecommerce\Http\Controllers\Fronts;
 
 use Botble\Ecommerce\Facades\EcommerceHelper;
-use Botble\Ecommerce\Facades\ProductCategoryHelper;
 use Botble\Ecommerce\Http\Controllers\BaseController;
 use Botble\Ecommerce\Services\Eqhit\EqhitSearchService;
 use Botble\Theme\Facades\Theme;
@@ -41,38 +40,69 @@ class PublicAjaxController extends BaseController
         $request->merge(['num' => 12]);
 
         $queries = $request->input();
-
         foreach ($queries as $key => $query) {
             if (! $query || $key == 'num' || (is_array($query) && ! Arr::get($query, 0))) {
                 unset($queries[$key]);
             }
         }
-
         // Call Eqhit API via service
 
         $response = $service->searchParts($request);
-        $products = collect($response['data']);
+        $paginator = $response['data'];
 
-        $error    = $response['error'];
+        $error = $response['error'];
+        $data = collect($paginator->items());
 
-        $total = $products->count();
+        $total = $data->count();
 
         return $this
             ->httpResponse()
-            ->setData(view(EcommerceHelper::viewPath('includes.ajax-search-results'), compact('products', 'queries', 'error'))->render())
+            ->setData(view(EcommerceHelper::viewPath('includes.ajax-search-results'), [
+                'products' => $data,
+                'queries'  => $queries,
+                'error'    => $response['error'],
+            ])->render())
             ->setMessage($total != 1 ? __(':total Products found', compact('total')) : __(':total Product found', compact('total')));
+
     }
     public function ajaxGetCategoriesDropdown()
     {
+
+        $categories = eqhit_fetch_categories();
+
+        // Optional: convert to associative array for <option> dropdown
+        $options = [];
+        foreach ($categories as $category) {
+            $options[$category['key']] = $category['name'];
+        }
+
         $categoriesDropdownView = Theme::getThemeNamespace('partials.product-categories-dropdown');
 
         return $this
             ->httpResponse()
             ->setData([
-                'select'   => ProductCategoryHelper::renderProductCategoriesSelect(),
+                'select'   => view('core/base::forms.partials.nested-select-option', [
+                    'options'  => $options,
+                    'selected' => null,
+                    'indent'   => null,
+                ])->render(),
                 'dropdown' => view()->exists($categoriesDropdownView)
-                ? view($categoriesDropdownView)->render()
+                ? view($categoriesDropdownView, compact('categories'))->render()
                 : null,
             ]);
     }
+    // public function ajaxGetCategoriesDropdown()
+    // {
+
+    //     $categoriesDropdownView = Theme::getThemeNamespace('partials.product-categories-dropdown');
+
+    //     return $this
+    //         ->httpResponse()
+    //         ->setData([
+    //             'select'   => ProductCategoryHelper::renderProductCategoriesSelect(),
+    //             'dropdown' => view()->exists($categoriesDropdownView)
+    //             ? view($categoriesDropdownView)->render()
+    //             : null,
+    //         ]);
+    // }
 }
