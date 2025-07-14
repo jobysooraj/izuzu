@@ -79,7 +79,10 @@ Theme::layout('full-width');
         @endif
 
         <div @class(['products-listing position-relative bb-product-items-wrapper col-12', 'col-xxl-10 col-lg-9'=> EcommerceHelper::hasAnyProductFilters()])>
-            @include(Theme::getThemeNamespace('views.ecommerce.includes.product-items'))
+            {{-- @include(Theme::getThemeNamespace('views.ecommerce.includes.product-items')) --}}
+            @include(Theme::getThemeNamespace('views.ecommerce.includes.product-items'), ['error' => $error ?? null])
+
         </div>
     </div>
 </div>
+

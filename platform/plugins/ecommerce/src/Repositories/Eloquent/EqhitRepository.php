@@ -13,13 +13,12 @@ class EqhitRepository implements EqhitInterface
         $pno      = $filters['pno'] ?? null;
         $name     = $filters['name'] ?? null;
 
-       if (! empty($filters['pno']) || ! empty($filters['name'])) {
+        if (! empty($filters['pno']) || ! empty($filters['name'])) {
             unset($filters['fig']);
         }
         $rawFigs = $filters['fig'] ?? [];
         $figs    = is_array($rawFigs) ? $rawFigs : array_filter(array_map('trim', explode(',', (string) $rawFigs)));
         $figs    = array_filter($figs);
-
 
         // Determine sources
         $spList = isset($filters['sp']) ? [$filters['sp']] : ['MaintenanceParts', 'ExteriorParts'];
@@ -81,9 +80,14 @@ class EqhitRepository implements EqhitInterface
                 'query' => $cleanQuery,
             ]
         );
+
+        if (! setting('eqhit_enabled')) {
+            $errors = 'Eqhit API is disabled in settings';
+        }
         return [
             'data'  => $paginator,
-            'error' => empty($errors) ? null : implode(' | ', $errors),
+            'error' => empty($errors) ? null : implode(' | ', (array) $errors),
+
         ];
     }
 

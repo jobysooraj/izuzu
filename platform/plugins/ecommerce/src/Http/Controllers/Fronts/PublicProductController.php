@@ -97,7 +97,6 @@ class PublicProductController extends BaseController
 
         $queries = BaseHelper::stringify($request->input('q'));
         $error   = $response['error'] ?? null;
-
         $paginated = $response['data'];
         return [$paginated, $queries, $error];
     }

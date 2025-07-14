@@ -1,0 +1,8 @@
+{
+  "name": "Eqhit",
+  "description": "Eqhit API integration for parts lookup.",
+  "version": "1.0",
+  "author": "GMI",
+  "namespace": "Botble\\Eqhit\\",
+  "provider": "Botble\\Eqhit\\Providers\\EqhitServiceProvider"
+}

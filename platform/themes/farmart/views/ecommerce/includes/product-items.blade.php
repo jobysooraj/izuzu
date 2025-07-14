@@ -7,6 +7,7 @@
         <div class="circle circle-2"></div>
     </div>
 </div>
+
 <!--products list-->
 <input name="page" data-value="{{ $products->currentPage() }}" type="hidden">
 <input name="q" type="hidden" value="{{ BaseHelper::stringify(request()->query('q')) }}">
@@ -22,7 +23,11 @@
     <div class="col-12 w-100">
         <div class="alert alert-warning mt-4 w-100" role="alert">
 
-            {{ __(':total Product(s) found', ['total' => 0]) }}
+             @if (!empty($error))
+                {{ $error }}
+            @else
+                {{ __(':total Product(s) found', ['total' => 0]) }}
+            @endif
         </div>
     </div>
     @endforelse
@@ -37,3 +42,4 @@
     {!! $products->links(Theme::getThemeNamespace('partials.pagination-numeric')) !!}
 
 </div>
+
