@@ -10,7 +10,6 @@ class TableFilterController extends TableController
     public function __invoke(FilterRequest $request)
     {
         $class = $request->input('class');
-
         if (! class_exists($class)) {
             return [];
         }

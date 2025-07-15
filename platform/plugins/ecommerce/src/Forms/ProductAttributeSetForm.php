@@ -19,6 +19,7 @@ class ProductAttributeSetForm extends FormAbstract
 {
     public function setup(): void
     {
+
         Assets::addScripts('jquery-ui')
             ->addStylesDirectly('vendor/core/plugins/ecommerce/css/ecommerce-product-attributes.css')
             ->addScriptsDirectly('vendor/core/plugins/ecommerce/js/ecommerce-product-attributes.js');
@@ -72,16 +73,17 @@ class ProductAttributeSetForm extends FormAbstract
                 'label' => trans('plugins/ecommerce::product-attribute-sets.use_in_product_listing'),
                 'default_value' => false,
             ])
+
             ->add('order', NumberField::class, SortOrderFieldOption::make())
-            ->add(
-                'categories[]',
-                TreeCategoryField::class,
-                SelectFieldOption::make()
-                    ->label(trans('plugins/ecommerce::products.form.categories'))
-                    ->choices(ProductCategoryHelper::getActiveTreeCategories())
-                    ->selected($this->getModel()->id ? $this->getModel()->categories->pluck('id')->all() : [])
-                    ->addAttribute('card-body-class', 'p-0')
-            )
+            // ->add(
+            //     'categories[]',
+            //     TreeCategoryField::class,
+            //     SelectFieldOption::make()
+            //         ->label(trans('plugins/ecommerce::products.form.categories'))
+            //         ->choices(ProductCategoryHelper::getActiveTreeCategories())
+            //         ->selected($this->getModel()->id ? $this->getModel()->categories->pluck('id')->all() : [])
+            //         ->addAttribute('card-body-class', 'p-0')
+            // )
             ->setBreakFieldPoint('status')
             ->addMetaBoxes([
                 'attributes_list' => [

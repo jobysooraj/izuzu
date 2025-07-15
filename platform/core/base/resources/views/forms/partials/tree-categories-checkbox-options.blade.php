@@ -4,7 +4,7 @@
     @endphp
 
     <ul @class(['list-unstyled', $class ?? null])>
-        @dd($categories)
+
         @foreach ($categories as $category)
             @continue($category->id === $currentId)
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace Botble\Ecommerce\Tables;
 
 use Botble\Base\Facades\BaseHelper;
@@ -215,31 +214,31 @@ class ProductTable extends TableAbstract
 
         if (EcommerceHelper::isEnabledSupportDigitalProducts() && ! EcommerceHelper::isDisabledPhysicalProduct() && $this->hasPermission('products.create')) {
             $buttons['create'] = [
-                'extend' => 'collection',
-                'text' => view('core/table::partials.create')->render(),
-                'class' => 'btn-primary',
+                'extend'  => 'collection',
+                'text'    => view('core/table::partials.create')->render(),
+                'class'   => 'btn-primary',
                 'buttons' => [
                     [
                         'className' => 'action-item',
-                        'text' => ProductTypeEnum::PHYSICAL()->toIcon() . ' ' . Html::tag(
+                        'text'      => ProductTypeEnum::PHYSICAL()->toIcon() . ' ' . Html::tag(
                             'span',
                             ProductTypeEnum::PHYSICAL()->label(),
                             [
                                 'data-action' => 'physical-product',
-                                'data-href' => route('products.create'),
-                                'class' => 'ms-1',
+                                'data-href'   => route('products.create'),
+                                'class'       => 'ms-1',
                             ]
                         )->toHtml(),
                     ],
                     [
                         'className' => 'action-item',
-                        'text' => ProductTypeEnum::DIGITAL()->toIcon() . ' ' . Html::tag(
+                        'text'      => ProductTypeEnum::DIGITAL()->toIcon() . ' ' . Html::tag(
                             'span',
                             ProductTypeEnum::DIGITAL()->label(),
                             [
                                 'data-action' => 'digital-product',
-                                'data-href' => route('products.create', ['product_type' => 'digital']),
-                                'class' => 'ms-1',
+                                'data-href'   => route('products.create', ['product_type' => 'digital']),
+                                'class'       => 'ms-1',
                             ]
                         )->toHtml(),
                     ],
@@ -252,7 +251,7 @@ class ProductTable extends TableAbstract
         return $buttons;
     }
 
-    public function renderTable($data = [], $mergeData = []): View|Factory|Response
+    public function renderTable($data = [], $mergeData = []): View | Factory | Response
     {
         if ($this->isEmpty()) {
             return view('plugins/ecommerce::products.intro');
@@ -261,37 +260,69 @@ class ProductTable extends TableAbstract
         return parent::renderTable($data, $mergeData);
     }
 
+    // public function getFilters(): array
+    // {
+    //     $data = parent::getFilters();
+
+    //     $data['category'] = array_merge($data['category'], [
+    //         'type' => 'select-ajax',
+    //     ]);
+
+    //     $data['brand_id'] = array_merge($data['brand_id'], [
+    //         'type' => 'select-ajax',
+    //     ]);
+
+    //     $data['stock_status'] = [
+    //         'title' => trans('plugins/ecommerce::products.form.stock_status'),
+    //         'type' => 'select',
+    //         'choices' => StockStatusEnum::labels(),
+    //         'validate' => 'required|in:' . implode(',', StockStatusEnum::values()),
+    //     ];
+
+    //     $data['product_type'] = [
+    //         'title' => trans('plugins/ecommerce::products.form.product_type.title'),
+    //         'type' => 'select',
+    //         'choices' => ProductTypeEnum::labels(),
+    //         'validate' => 'required|in:' . implode(',', ProductTypeEnum::values()),
+    //     ];
+
+    //     $data['sku'] = [
+    //         'title' => trans('plugins/ecommerce::products.sku'),
+    //         'type' => 'text',
+    //     ];
+
+    //     return $data;
+    // }
+    //filter select box for eqhit content
     public function getFilters(): array
     {
-        $data = parent::getFilters();
+        $data['fig'] = [
+            'title'    => 'Fig',
+            'type'     => 'text',
+            'validate' => 'nullable|string',
 
-        $data['category'] = array_merge($data['category'], [
-            'type' => 'select-ajax',
-        ]);
-
-        $data['brand_id'] = array_merge($data['brand_id'], [
-            'type' => 'select-ajax',
-        ]);
-
-        $data['stock_status'] = [
-            'title' => trans('plugins/ecommerce::products.form.stock_status'),
-            'type' => 'select',
-            'choices' => StockStatusEnum::labels(),
-            'validate' => 'required|in:' . implode(',', StockStatusEnum::values()),
         ];
 
-        $data['product_type'] = [
-            'title' => trans('plugins/ecommerce::products.form.product_type.title'),
-            'type' => 'select',
-            'choices' => ProductTypeEnum::labels(),
-            'validate' => 'required|in:' . implode(',', ProductTypeEnum::values()),
+        $data['pno'] = [
+            'title'    => 'PNO',
+            'type'     => 'text',
+            'validate' => 'nullable|string',
+
         ];
 
-        $data['sku'] = [
-            'title' => trans('plugins/ecommerce::products.sku'),
-            'type' => 'text',
+        $data['eqhit_name'] = [
+            'title'    => 'Name',
+            'type'     => 'text',
+            'validate' => 'nullable|string',
+
         ];
 
+        $data['model'] = [
+            'title'    => 'Model',
+            'type'     => 'text',
+            'validate' => 'nullable|string',
+
+        ];
         return $data;
     }
 
@@ -303,35 +334,35 @@ class ProductTable extends TableAbstract
                 ->name('order')
                 ->title(trans('plugins/ecommerce::ecommerce.sort_order')),
             'category' => [
-                'title' => trans('plugins/ecommerce::products.category'),
-                'type' => 'select-ajax',
+                'title'    => trans('plugins/ecommerce::products.category'),
+                'type'     => 'select-ajax',
                 'validate' => 'required',
-                'callback' => function (int|string|null $value = null): array {
+                'callback' => function (int | string | null $value = null): array {
                     $categorySelected = [];
                     if ($value && $category = ProductCategory::query()->find($value)) {
                         $categorySelected = [$category->getKey() => $category->name];
                     }
 
                     return [
-                        'url' => route('product-categories.search'),
-                        'selected' => $categorySelected,
+                        'url'           => route('product-categories.search'),
+                        'selected'      => $categorySelected,
                         'minimum-input' => 1,
                     ];
                 },
             ],
             'brand_id' => [
-                'title' => trans('plugins/ecommerce::products.brand'),
-                'type' => 'select-ajax',
+                'title'    => trans('plugins/ecommerce::products.brand'),
+                'type'     => 'select-ajax',
                 'validate' => 'required',
-                'callback' => function (int|string|null $value = null): array {
+                'callback' => function (int | string | null $value = null): array {
                     $brandSelected = [];
                     if ($value && $brand = Brand::query()->find($value)) {
                         $brandSelected = [$brand->getKey() => $brand->name];
                     }
 
                     return [
-                        'url' => route('brands.search'),
-                        'selected' => $brandSelected,
+                        'url'           => route('brands.search'),
+                        'selected'      => $brandSelected,
                         'minimum-input' => 1,
                     ];
                 },
@@ -343,11 +374,11 @@ class ProductTable extends TableAbstract
     }
 
     public function applyFilterCondition(
-        EloquentBuilder|QueryBuilder|EloquentRelation $query,
+        EloquentBuilder | QueryBuilder | EloquentRelation $query,
         string $key,
         string $operator,
         ?string $value
-    ): EloquentRelation|EloquentBuilder|QueryBuilder {
+    ): EloquentRelation | EloquentBuilder | QueryBuilder {
         switch ($key) {
             case 'created_at':
                 if (! $value) {
@@ -437,10 +468,11 @@ class ProductTable extends TableAbstract
                 }
         }
 
+
         return parent::applyFilterCondition($query, $key, $operator, $value);
     }
 
-    public function saveBulkChangeItem(Model|Product $item, string $inputKey, ?string $inputValue): Model|bool
+    public function saveBulkChangeItem(Model | Product $item, string $inputKey, ?string $inputValue): Model | bool
     {
         if ($inputKey === 'category') {
             /**

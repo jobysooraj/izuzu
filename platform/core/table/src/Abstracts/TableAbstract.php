@@ -835,7 +835,6 @@ abstract class TableAbstract extends DataTable implements ExtensibleContract
     public function getFilters(): array
     {
         $filters = $this->filters;
-
         if (! $filters) {
             $filters = $this->getAllBulkChanges();
         } else {

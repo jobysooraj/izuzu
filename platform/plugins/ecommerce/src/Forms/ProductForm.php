@@ -117,15 +117,15 @@ class ProductForm extends FormAbstract
                     ->label(trans('core/base::forms.is_featured'))
                     ->defaultValue(false)
             )
-            ->add(
-                'categories[]',
-                TreeCategoryField::class,
-                SelectFieldOption::make()
-                    ->label(trans('plugins/ecommerce::products.form.categories'))
-                    ->choices(ProductCategoryHelper::getActiveTreeCategories())
-                    ->selected(old('categories', $selectedCategories))
-                    ->addAttribute('card-body-class', 'p-0')
-            )
+            // ->add(
+            //     'categories[]',
+            //     TreeCategoryField::class,
+            //     SelectFieldOption::make()
+            //         ->label(trans('plugins/ecommerce::products.form.categories'))
+            //         ->choices(ProductCategoryHelper::getActiveTreeCategories())
+            //         ->selected(old('categories', $selectedCategories))
+            //         ->addAttribute('card-body-class', 'p-0')
+            // )
             ->when($brands, function () use ($brands): void {
                 $this
                     ->add(
