@@ -1,5 +1,4 @@
 <?php
-
 namespace Botble\Ecommerce\Http\Controllers\Customers;
 
 use Botble\ACL\Traits\AuthenticatesUsers;
@@ -82,6 +81,37 @@ class LoginController extends BaseController
         return redirect()->to(BaseHelper::getHomepageUrl());
     }
 
+    // protected function attemptLogin(LoginRequest $request)
+    // {
+    //     if ($this->guard()->validate($this->credentials($request))) {
+    //         $customer = $this->guard()->getLastAttempted();
+
+    //         if (EcommerceHelper::isEnableEmailVerification() && empty($customer->confirmed_at)) {
+    //             throw ValidationException::withMessages([
+    //                 'confirmation' => [
+    //                     __(
+    //                         'The given email address has not been confirmed. <a href=":resend_link">Resend confirmation link.</a>',
+    //                         [
+    //                             'resend_link' => route('customer.resend_confirmation', ['email' => $customer->email]),
+    //                         ]
+    //                     ),
+    //                 ],
+    //             ]);
+    //         }
+
+    //         if ($customer->status->getValue() !== CustomerStatusEnum::ACTIVATED) {
+    //             throw ValidationException::withMessages([
+    //                 'email' => [
+    //                     __('Your account has been locked, please contact the administrator.'),
+    //                 ],
+    //             ]);
+    //         }
+
+    //         return $this->baseAttemptLogin($request);
+    //     }
+
+    //     return false;
+    // }
     protected function attemptLogin(LoginRequest $request)
     {
         if ($this->guard()->validate($this->credentials($request))) {
@@ -92,9 +122,7 @@ class LoginController extends BaseController
                     'confirmation' => [
                         __(
                             'The given email address has not been confirmed. <a href=":resend_link">Resend confirmation link.</a>',
-                            [
-                                'resend_link' => route('customer.resend_confirmation', ['email' => $customer->email]),
-                            ]
+                            ['resend_link' => route('customer.resend_confirmation', ['email' => $customer->email])]
                         ),
                     ],
                 ]);
@@ -108,7 +136,39 @@ class LoginController extends BaseController
                 ]);
             }
 
-            return $this->baseAttemptLogin($request);
+            // ✅ Generate OTP
+            $otp                      = rand(100000, 999999);
+            $customer->otp_code       = $otp;
+            $customer->otp_expires_at = now()->addMinutes(5);
+            $customer->save();
+
+            // ✅ Send OTP email
+            $content = get_setting_email_template_content('plugins', 'ecommerce', 'customer-otp')
+            ?: file_get_contents(platform_path('plugins/ecommerce/resources/email-templates/customer-otp.tpl'));
+
+            $content = str_replace(
+                ['{{ customer_name }}', '{{ customer_otp }}', '{{ site_url }}'],
+                [$customer->name, $customer->otp_code, theme_option('site_url') ?? url('/')],
+                $content
+            );
+
+            \EmailHandler::send(
+                $content,
+                'OTP Verification',
+                $customer->email,
+                [],
+                true
+            );
+
+            // ✅ Store temp session
+            session([
+                'otp_customer_id'    => $customer->id,
+                'otp_customer_email' => $customer->email,
+                'otp_credentials'    => $this->credentials($request),
+            ]);
+
+            // ✅ Redirect to OTP form
+            return redirect()->route('customer.otp.verify');
         }
 
         return false;
@@ -117,14 +177,14 @@ class LoginController extends BaseController
     public function credentials(LoginRequest $request): array
     {
         $usernameKey = match (EcommerceHelper::getLoginOption()) {
-            'phone' => 'phone',
+            'phone'          => 'phone',
             'email_or_phone' => $request->isEmail($request->input($this->username())) ? 'email' : 'phone',
-            default => 'email',
+            default          => 'email',
         };
 
         return [
             $usernameKey => $request->input($this->username()),
-            'password' => $request->input('password'),
+            'password'   => $request->input('password'),
         ];
     }
 }

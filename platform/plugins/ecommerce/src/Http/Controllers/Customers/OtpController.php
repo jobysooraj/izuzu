@@ -3,6 +3,7 @@ namespace Botble\Ecommerce\Http\Controllers\Customers;
 
 use Botble\Base\Http\Controllers\BaseController;
 use Botble\Ecommerce\Models\Customer;
+use Botble\Theme\Facades\Theme;
 use Carbon\Carbon;
 use EmailHandler;
 use Illuminate\Http\Request;
@@ -15,15 +16,19 @@ class OtpController extends BaseController
     {
 
         $email = $request->query('email');
+        return Theme::scope(
+            'ecommerce.customers.auth.verify-otp',
+            ['email' => $request->get('email')],
+            'plugins/ecommerce::customers.auth.verify-otp' // fallback
+        )->render();
 
-        return view('plugins/ecommerce::customers.auth.verify-otp', [
-            'email' => $request->get('email'),
-        ]);
     }
 
     public function verifyOtp(Request $request)
     {
 
+        $email = $request->input('email') ?? Session::get('otp_customer_email');
+        $request->merge(['email' => $email]);
         $request->validate([
             'email' => 'required|email|exists:ec_customers,email',
             'otp'   => 'required|digits:6',
@@ -49,39 +54,68 @@ class OtpController extends BaseController
         $customer->save();
         $plainPassword = Session::pull('otp_user_password');
         $roleName      = Session::pull('otp_user_role');
+        $credentials   = Session::pull('otp_credentials');
 
-        // Send credentials email
-        $templateKey = $roleName === 'vendor'
-        ? 'dealer-credentials'
-        : 'customer-credentials';
+        if ($plainPassword && $roleName) {
+            // This is a registration case (new account)
+            $templateKey = $roleName === 'vendor' ? 'dealer-credentials' : 'customer-credentials';
 
-        $content = file_get_contents(platform_path('plugins/ecommerce/resources/email-templates/welcome.tpl'));
+            $content = get_setting_email_template_content('plugins', 'ecommerce', $templateKey)
+            ?: file_get_contents(platform_path('plugins/ecommerce/resources/email-templates/welcome.tpl'));
 
-        if ($template = $request->input('template')) {
-            [$type, $module, $template] = explode('.', $template);
+            $content = str_replace(
+                ['{{ customer_name }}', '{{ customer_email }}', '{{ customer_password }}', '{{ site_url }}'],
+                [$customer->name, $customer->email, $plainPassword, theme_option('site_url') ?? url('/')],
+                $content
+            );
 
-            if ($type && $module && $template) {
-                $content = get_setting_email_template_content($type, $module, $template);
-            }
+            EmailHandler::send($content, 'Customer Registration', $email, [], true);
+
+            return redirect()->route('customer.login')->withSuccess('Email verified successfully. You can now log in.');
         }
 
-        $content = get_setting_email_template_content('plugins', 'ecommerce', $templateKey);
-        if (empty($content)) {
-            $content = file_get_contents(platform_path('plugins/ecommerce/resources/email-templates/welcome.tpl'));
+        if ($credentials) {
+            // This is a login case
+            auth('customer')->attempt($credentials);
+
+            return redirect()->intended(route('customer.overview'));
         }
-        $content = str_replace(
-            ['{{ customer_name }}', '{{ customer_email }}', '{{ customer_password }}', '{{ site_url }}'],
-            [$customer->name, $customer->email, $plainPassword, theme_option('site_url') ?? url('/')],
-            $content
-        );
-        //
-        EmailHandler::send(
-            $content,
-            'Customer Registration',
-            $request->input('email'),
-            [],
-            true
-        );
+
         return redirect()->route('customer.login')->withSuccess('Email verified successfully. You can now log in.');
     }
+    public function resendOtp(Request $request)
+    {
+        $email = $request->query('email') ?? Session::get('otp_customer_email');
+
+        if (! $email) {
+            return redirect()->route('customer.login')->withErrors(['email' => 'Email not found.']);
+        }
+
+        $customer = Customer::where('email', $email)->first();
+
+        if (! $customer) {
+            return redirect()->route('customer.login')->withErrors(['email' => 'Customer not found.']);
+        }
+
+        // Generate new OTP
+        $otp                      = rand(100000, 999999);
+        $customer->otp_code       = $otp;
+        $customer->otp_expires_at = now()->addMinutes(5);
+        $customer->save();
+
+        // Send OTP again
+        $content = get_setting_email_template_content('plugins', 'ecommerce', 'customer-otp')
+        ?: file_get_contents(platform_path('plugins/ecommerce/resources/email-templates/customer-otp.tpl'));
+
+        $content = str_replace(
+            ['{{ customer_name }}', '{{ customer_otp }}', '{{ site_url }}'],
+            [$customer->name, $otp, theme_option('site_url') ?? url('/')],
+            $content
+        );
+
+        EmailHandler::send($content, 'OTP Verification', $email, [], true);
+
+        return redirect()->route('customer.otp.verify', ['email' => $email])->withSuccess('OTP resent successfully.');
+    }
+
 }

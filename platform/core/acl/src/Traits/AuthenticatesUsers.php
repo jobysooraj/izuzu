@@ -1,5 +1,4 @@
 <?php
-
 namespace Botble\ACL\Traits;
 
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -23,7 +22,7 @@ trait AuthenticatesUsers
         return null;
     }
 
-    public function login(Request $request): Response|RedirectResponse
+    public function login(Request $request): Response | RedirectResponse
     {
         $this->validateLogin($request);
 
@@ -53,7 +52,7 @@ trait AuthenticatesUsers
     {
         $request->validate([
             $this->username() => 'required|string',
-            'password' => 'required|string',
+            'password'        => 'required|string',
         ]);
     }
 
@@ -80,22 +79,33 @@ trait AuthenticatesUsers
         return $request->only($this->username(), 'password');
     }
 
-    protected function sendLoginResponse(Request $request): Response|RedirectResponse
+    protected function sendLoginResponse(Request $request): Response | RedirectResponse
     {
         $request->session()->regenerate();
 
         $this->clearLoginAttempts($request);
 
-        $this->authenticated($request, $this->guard()->user());
+        // $this->authenticated($request, $this->guard()->user());
+        if (session()->has('otp_customer_email')) {
+            return redirect()->route('customer.otp.verify');
+        }
+
+        $user = $this->guard()->user();
+
+        if ($user) {
+            $this->authenticated($request, $user); // only call if user is valid
+        }
 
         return $request->wantsJson()
-            ? new Response('', 204)
-            : redirect()->intended($this->redirectPath());
+        ? new Response('', 204)
+        : redirect()->intended($this->redirectPath());
     }
 
     protected function authenticated(Request $request, Authenticatable $user)
     {
-        //
+        if (! $user) {
+            return;
+        }
     }
 
     protected function sendFailedLoginResponse()
@@ -105,7 +115,7 @@ trait AuthenticatesUsers
         ]);
     }
 
-    public function logout(Request $request): Response|Redirector|RedirectResponse|Application
+    public function logout(Request $request): Response | Redirector | RedirectResponse | Application
     {
         $this->guard()->logout();
 
@@ -116,8 +126,8 @@ trait AuthenticatesUsers
         $this->loggedOut($request);
 
         return $request->wantsJson()
-            ? new Response('', 204)
-            : redirect('/');
+        ? new Response('', 204)
+        : redirect('/');
     }
 
     protected function loggedOut(Request $request)

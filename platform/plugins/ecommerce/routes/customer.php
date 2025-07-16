@@ -85,6 +85,8 @@ Theme::registerRoutes(function (): void {
             // Add this for OTP
         Route::get('otp/verify', 'OtpController@showForm')->name('otp.form');
         Route::post('otp/verify', 'OtpController@verifyOtp')->name('otp.verify');
+        Route::get('otp/resend', 'OtpController@resendOtp')->name('otp.resend');
+
         if (EcommerceHelper::isCustomerRegistrationEnabled()) {
             Route::get(EcommerceHelper::getPageSlug('register'), 'RegisterController@showRegistrationForm')->name(
                 'register'
