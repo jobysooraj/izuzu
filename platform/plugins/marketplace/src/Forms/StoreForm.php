@@ -34,7 +34,7 @@ class StoreForm extends FormAbstract
     public function setup(): void
     {
         Assets::addScriptsDirectly('vendor/core/plugins/marketplace/js/store.js');
-        Assets::addScriptsDirectly('https://maps.googleapis.com/maps/api/js?key=' . env('GOOGLE_MAPS_API_KEY') . '&libraries=places');
+        Assets::addScriptsDirectly('https://maps.googleapis.com/maps/api/js?key=' .setting('google_maps_key'). '&libraries=places');
 
         Assets::addStylesDirectly('vendor/core/core/base/libraries/dropzone/dropzone.css');
         Assets::addScriptsDirectly('vendor/core/core/base/libraries/dropzone/dropzone.js');

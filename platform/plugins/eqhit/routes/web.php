@@ -16,10 +16,16 @@ Route::group(['prefix' => BaseHelper::getAdminPrefix(), 'middleware' => ['web', 
         'uses'       => 'Botble\Eqhit\Http\Controllers\SettingsController@update',
         'permission' => 'eqhit.settings',
     ]);
-  // Eqhit filter routes
-    Route::get('eqhit/fig/search', [EqhitController::class, 'searchFig'])->name('eqhit.fig.search');
-    Route::get('eqhit/pno/search', [EqhitController::class, 'searchPno'])->name('eqhit.pno.search');
-    Route::get('eqhit/name/search', [EqhitController::class, 'searchName'])->name('eqhit.name.search');
-    Route::get('eqhit/model/search', [EqhitController::class, 'searchModel'])->name('eqhit.model.search');
 
+  Route::get('google', [
+        'as'         => 'settings.google',
+        'uses'       => 'Botble\Eqhit\Http\Controllers\GoogleSettingsController@edit',
+        'permission' => 'eqhit.settings', // reuse or create a new permission
+    ]);
+
+    Route::post('google', [
+        'as'         => 'settings.google.update',
+        'uses'       => 'Botble\Eqhit\Http\Controllers\GoogleSettingsController@update',
+        'permission' => 'eqhit.settings',
+    ]);
 });
